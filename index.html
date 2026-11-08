@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cena a Cena</title>
+<meta name="theme-color" content="#0E1222">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cena a Cena">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: barra superior fixa + coluna central; a "tela de cinema" escura é o bloco de destaque, o resto é claro e calmo. */
+:root{
+  --bg:#EEF0F4; --surface:#FFFFFF; --ink:#141A2E; --muted:#596079; --line:#D8DCE6; --chip:#E4E8F1;
+  --accent:#E2492F; --accent-ink:#FFFFFF; --sub:#F5C542; --sub-ink:#1B1608;
+  --good:#1D8F5A; --good-bg:#DDF3E8; --bad:#C93535; --bad-bg:#FBE3E1;
+  --screen:#0E1222; --screen-ink:#F4F1E8;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0C101D; --surface:#151A2C; --ink:#E8EBF4; --muted:#9AA1B8; --line:#262D45; --chip:#1F263B;
+  --accent:#FF6A4D; --accent-ink:#1A0A06; --good:#45C486; --good-bg:#12321F; --bad:#FF7B73; --bad-bg:#3A1716;
+  --screen:#05070F; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0C101D; --surface:#151A2C; --ink:#E8EBF4; --muted:#9AA1B8; --line:#262D45; --chip:#1F263B;
+  --accent:#FF6A4D; --accent-ink:#1A0A06; --good:#45C486; --good-bg:#12321F; --bad:#FF7B73; --bad-bg:#3A1716;
+  --screen:#05070F; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+button,input,textarea,select{font:inherit;color:inherit}
+button{touch-action:manipulation}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand .clap{width:30px;height:24px;border-radius:4px;background:var(--screen);position:relative;overflow:hidden}
+.brand .clap::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:repeating-linear-gradient(-45deg,var(--screen-ink) 0 5px,var(--screen) 5px 10px)}
+.brand .clap::after{content:"";position:absolute;left:5px;right:5px;bottom:5px;height:3px;border-radius:2px;background:var(--sub)}
+.nav{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+.nav a{padding:7px 11px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:700;font-size:14px}
+.nav a.on,.nav a:hover{background:var(--chip);color:var(--ink)}
+main{padding-block:24px calc(64px + env(safe-area-inset-bottom,0px))}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--accent);flex:none}
+.muted{color:var(--muted)} .small{font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;color:var(--ink);min-height:44px}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.rec{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.rec.live{animation:pulse 1.1s infinite}
+.btn.good{background:var(--good);border-color:var(--good);color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 12px;font-size:14px;min-height:36px}
+@keyframes pulse{50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--bad) 25%,transparent)}}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ico{width:16px;height:16px;flex:none}
+.banner{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;font-size:14px}
+.banner b{color:var(--accent)}
+/* home */
+.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:end;margin-bottom:24px}
+.hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.03em;margin-top:8px}
+.hero p{max-width:58ch;margin:12px 0 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stat{background:var(--surface);padding:14px 14px}
+.stat .n{font-family:var(--f-display);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat .l{font-size:13px;color:var(--muted);line-height:1.3}
+.stat.big .n{color:var(--accent)}
+.method{display:grid;grid-template-columns:repeat(9,1fr);margin:8px 0 30px;position:relative}
+.method::before{content:"";position:absolute;left:5%;right:5%;top:17px;height:2px;background:var(--line)}
+.mstep{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative;font-size:12.5px;line-height:1.25;padding:0 3px}
+.mstep .dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);font-family:var(--f-mono);font-weight:600;font-size:13px}
+.mstep.end .dot{background:var(--accent);color:var(--accent-ink)}
+.lvhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.lvhead h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.lessons{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px}
+.lcard h3{font-size:21px}
+.lcard .meta{font-size:13px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.pips{display:flex;gap:4px}
+.pip{flex:1;height:6px;border-radius:3px;background:var(--chip)}
+.pip.on{background:var(--good)}
+.lcard .row{margin-top:auto}
+.newcard{border-style:dashed;background:transparent}
+.month{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:10px}
+.month>summary{cursor:pointer;padding:14px 18px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;list-style:none}
+.month>summary::-webkit-details-marker{display:none}
+.month>summary::before{content:"▸";color:var(--accent);font-weight:800}
+.month[open]>summary::before{content:"▾"}
+.mname{font-family:var(--f-display);font-weight:800;font-size:20px}
+.week{padding:4px 18px 16px}
+.wk{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 8px}
+.wk.now{color:var(--accent);font-weight:600}
+.tagline{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--chip)}
+.tagline.warn{background:color-mix(in srgb,var(--sub) 35%,var(--surface))}
+.tagline.ok{background:var(--good-bg);color:var(--good)}
+/* lesson */
+.lhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.lhead h1{font-size:clamp(24px,4vw,34px);font-weight:800;letter-spacing:-.02em;margin-top:6px}
+.stepper{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.stepper a{flex:0 0 auto;min-width:100px;display:flex;flex-direction:column;gap:2px;padding:9px 11px;border-radius:12px;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:var(--muted);font-size:12.5px;line-height:1.2;scroll-snap-align:start}
+.stepper a .k{font-family:var(--f-mono);font-weight:600;font-size:12px;display:flex;justify-content:space-between;color:var(--ink)}
+.stepper a .k .ok{color:var(--good)}
+.stepper a.on{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.stepper a.on .k{color:var(--bg)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.panel>h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.panel>.lead{margin:6px 0 18px;color:var(--muted);max-width:68ch}
+.tip{display:inline-flex;align-items:center;gap:8px;background:var(--chip);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+.actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+/* screen */
+.player{border-radius:12px;overflow:hidden;background:#000;max-width:100%}
+.player:fullscreen{display:flex;flex-direction:column;border-radius:0}
+.player:fullscreen .screen{flex:1;aspect-ratio:auto;border-radius:0}
+.screen{position:relative;background:#000;color:var(--screen-ink);border-radius:12px;aspect-ratio:16/9;max-width:100%;overflow:hidden;--fx:0px;--fy:0px;--fw:100%;--fh:100%;--mh:.22}
+.player .screen{border-radius:0}
+.screen video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+/* tarja que cobre a legenda gravada dentro do vídeo da VOA */
+.mask{position:absolute;left:var(--fx);width:var(--fw);top:calc(var(--fy) + var(--fh) * (1 - var(--mh)));height:calc(var(--fh) * var(--mh));background:rgba(6,8,16,.93);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);pointer-events:none}
+.subs{position:absolute;left:var(--fx);width:var(--fw);top:calc(var(--fy) + var(--fh) * (1 - var(--mh)));height:calc(var(--fh) * var(--mh));padding:0 4%;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:4px;pointer-events:none;align-items:center}
+.screen.nomask .subs{top:auto;height:auto;bottom:calc(var(--fh) * .16)}
+.bar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#0b0e18;color:#fff}
+.bar button{border:0;background:transparent;color:#fff;cursor:pointer;min-width:40px;min-height:40px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px}
+.bar button:hover{background:rgba(255,255,255,.12)}
+.bar input[type=range]{flex:1;min-width:0;accent-color:var(--sub)}
+.bar .time{font-family:var(--f-mono);font-size:12px;opacity:.8;white-space:nowrap}
+.maskrow{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#141826;color:#fff;font-size:13px;flex-wrap:wrap}
+.maskrow input{flex:1;min-width:120px;accent-color:var(--sub)}
+.subs span{display:inline;padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.55);box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.subs .en{font-weight:700;font-size:clamp(14px,2.6vw,24px);color:var(--sub)}
+.subs .pt{font-size:clamp(13px,2.2vw,20px);color:#fff}
+.screen:fullscreen .subs .en{font-size:clamp(20px,3vw,40px)} .screen:fullscreen .subs .pt{font-size:clamp(18px,2.6vw,34px)}
+.screen .recdot{position:absolute;top:10px;right:10px;font-family:var(--f-mono);font-size:12px;background:var(--bad);color:#fff;padding:3px 9px;border-radius:6px}
+.screen .err{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:#fff;font-size:15px;background:rgba(0,0,0,.75)}
+.under{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;background:var(--bg);flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;color:var(--muted);min-height:34px}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+/* quiz */
+.q{font-weight:700;font-size:18px;margin-bottom:10px}
+.qpt{font-size:14px;color:var(--muted);margin:-6px 0 12px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;background:var(--surface)}
+.opt input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px}
+.opt .t{flex:1;min-width:0}
+.opt .pt{font-size:14px;color:var(--muted)}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+/* lines */
+.lines{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow:auto;padding-right:4px;-webkit-overflow-scrolling:touch}
+.line{border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--surface)}
+.line .sp{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.line .pt{font-size:13.5px;color:var(--muted)}
+.line.cur{border-color:var(--sub);background:color-mix(in srgb,var(--sub) 16%,var(--surface))}
+.line.done{border-left:4px solid var(--good)}
+.line.skip{opacity:.5}
+.line .sc{float:right;font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--good)}
+.focus-line{background:var(--sub);color:var(--sub-ink);border-radius:12px;padding:14px 16px;font-weight:700;font-size:19px;text-align:center;margin:12px 0 6px}
+.focus-pt{text-align:center;color:var(--muted);font-size:14px;margin-bottom:12px}
+.heard{min-height:3em;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:15px}
+.heard .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:block;margin-bottom:4px}
+.w{display:inline-block;padding:0 3px;border-radius:4px;margin:1px 0}
+.w.ok{background:var(--good-bg);color:var(--good);font-weight:700}
+.w.no{background:var(--bad-bg);color:var(--bad);text-decoration:underline dotted}
+.pct{font-family:var(--f-display);font-weight:800;font-size:26px}
+audio{width:100%;max-width:100%;margin-top:8px;height:40px}
+/* marcação */
+.hold{width:100%;min-height:96px;border-radius:18px;border:0;background:var(--ink);color:var(--bg);font-weight:800;font-size:18px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.hold small{font-weight:400;font-size:13px;opacity:.75}
+.hold.down{background:var(--bad);color:#fff}
+.tc{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* ditado */
+.dict{font-size:19px;line-height:2.2;padding:16px;border-radius:12px;background:var(--bg);border:1px solid var(--line);overflow-wrap:anywhere}
+.dict input{font-family:var(--f-mono);font-size:17px;border:0;border-bottom:2px solid var(--accent);background:transparent;padding:0 2px;text-align:center;letter-spacing:.12em;outline:none;max-width:100%}
+.dict input.ok{border-color:var(--good);color:var(--good)}
+.dict input.no{border-color:var(--bad);color:var(--bad)}
+.counter{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+/* karaoke */
+.lyrics{display:flex;flex-direction:column;gap:4px;max-height:420px;overflow:auto}
+.ly{padding:6px 10px;border-radius:8px;color:var(--muted)}
+.ly .pt{font-size:13px}
+.ly.cur{background:var(--sub);color:var(--sub-ink)}
+.ly.cur .pt{color:var(--sub-ink);opacity:.8}
+.kara{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:20px;text-align:center;background:linear-gradient(160deg,#1B1F6B,#3B1060)}
+.kara .now{font-family:var(--f-display);font-weight:800;font-size:clamp(20px,4vw,40px);color:#fff}
+.kara .next{font-size:clamp(14px,2.2vw,20px);color:#fff;opacity:.55}
+.kara .ttl{font-family:var(--f-mono);font-size:12px;color:#fff;opacity:.6;letter-spacing:.1em;text-transform:uppercase}
+/* report */
+.az{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+.az .letter{font-family:var(--f-display);font-weight:800;font-size:22px;color:var(--accent);border-bottom:1px solid var(--line);margin-bottom:4px}
+.az button{display:block;border:0;background:none;padding:2px 0;cursor:pointer;text-align:left;font-size:15px}
+.az button:hover{color:var(--accent)}
+.az .c{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-left:4px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:14px;background:var(--surface);cursor:pointer}
+.scores{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px;margin:14px 0 22px}
+.scores div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.scores .n{font-family:var(--f-display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.scores .l{font-size:12.5px;color:var(--muted)}
+.vick{display:flex;gap:16px;align-items:center;background:var(--screen);color:var(--screen-ink);border-radius:var(--r);padding:20px 22px;margin-bottom:20px;flex-wrap:wrap}
+.vick .n{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,7vw,64px);color:var(--sub);line-height:1;font-variant-numeric:tabular-nums}
+/* editor */
+.form{display:grid;gap:18px}
+.fgroup{display:grid;gap:6px;min-width:0}
+.fgroup label{font-weight:700;font-size:14px}
+.fgroup .help{font-size:13px;color:var(--muted)}
+.form input[type=text],.form input[type=url],.form textarea,.form select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:16px}
+.form textarea{font-family:var(--f-mono);font-size:13.5px;line-height:1.55;min-height:180px;resize:vertical}
+fieldset{border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:14px;margin:0;min-width:0}
+legend{font-family:var(--f-display);font-weight:700;font-size:18px;padding:0 6px}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--chip);padding:1px 5px;border-radius:5px;overflow-wrap:anywhere}
+.credit{font-size:13px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1}
+@media (max-width:820px){
+  .hero{grid-template-columns:1fr}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .bar{gap:2px;padding:4px 6px}
+  .bar button{min-width:36px}
+  .method{grid-template-columns:repeat(5,1fr);row-gap:16px}
+  .method::before{display:none}
+}
+@media (max-width:480px){
+  .panel{padding:16px} .panel>h2{font-size:22px}
+  .stat .n{font-size:22px} .stat{padding:12px 10px}
+  .method{grid-template-columns:repeat(3,1fr)}
+  .nav a{padding:6px 9px;font-size:13px}
+  .focus-line{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="#home"><span class="clap" aria-hidden="true"></span>Cena a Cena</a>
+  <nav class="nav">
+    <a href="#home" data-nav="home">Aulas</a>
+    <a href="#progresso" data-nav="progresso">Progresso</a>
+    <a href="#nova" data-nav="nova">Nova aula</a>
+    <a href="#ajustes" data-nav="ajustes">Ajustes</a>
+  </nav>
+</div></header>
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="course.js"></script>
+<script>
+"use strict";
+/* ================= utilidades ================= */
+const $ = (s, el = document) => el.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'class') el.className = v;
+    else if (k === 'html') el.innerHTML = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) el.append(k.nodeType ? k : String(k));
+  return el;
+}
+const ICON = {
+  play: '<svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  stop: '<svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  mic: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+  ear: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>',
+  next: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  full: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+};
+const ic = (n) => h('span', { html: ICON[n], style: 'display:inline-flex' });
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600); }
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const today = () => new Date().toISOString().slice(0, 10);
+function fmtTime(s) { if (s == null) return '—'; const m = Math.floor(s / 60); const r = s - m * 60; return m + ':' + (r < 10 ? '0' : '') + r.toFixed(1); }
+function parseTime(str) { if (!str) return null; const p = str.trim().replace(',', '.').split(':').map(Number); if (p.some(isNaN)) return null; return p.reduce((a, b) => a * 60 + b, 0); }
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('cac_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('cac_' + k, JSON.stringify(v)); } catch (e) {} },
+  keys() { try { return Object.keys(localStorage).filter(k => k.startsWith('cac_')).map(k => k.slice(4)); } catch (e) { return []; } }
+};
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+
+/* ================= banco local (aulas criadas por você) ================= */
+const DB = {
+  db: null, mem: new Map(),
+  async open() {
+    try { this.db = await new Promise((res, rej) => { const r = indexedDB.open('cena-a-cena', 1); r.onupgradeneeded = () => r.result.createObjectStore('lessons', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+    catch (e) { this.db = null; }
+  },
+  _req(mode, fn) { return new Promise((res, rej) => { const tx = this.db.transaction('lessons', mode); const r = fn(tx.objectStore('lessons')); tx.oncomplete = () => res(r && r.result); tx.onerror = () => rej(tx.error); }); },
+  async all() { if (!this.db) return [...this.mem.values()]; try { return await this._req('readonly', s => s.getAll()); } catch (e) { return [...this.mem.values()]; } },
+  async put(l) { this.mem.set(l.id, l); if (this.db) try { await this._req('readwrite', s => s.put(l)); } catch (e) { toast('Não consegui salvar no navegador.'); } },
+  async del(id) { this.mem.delete(id); if (this.db) try { await this._req('readwrite', s => s.delete(id)); } catch (e) {} }
+};
+
+/* ================= progresso ================= */
+const Progress = {
+  d: LS.get('progress2', { lessons: {}, words: {}, missed: {}, total: 0, days: [] }),
+  save() { LS.set('progress2', this.d); },
+  L(id) { return this.d.lessons[id] || (this.d.lessons[id] = { done: {}, scores: {}, words: {}, missed: {}, total: 0 }); },
+  touchDay() { const t = today(); if (!this.d.days.includes(t)) { this.d.days.push(t); this.save(); } },
+  mark(id, step, pct) { const L = this.L(id); L.done[step] = true; if (pct != null && !isNaN(pct)) L.scores[step] = Math.max(L.scores[step] || 0, Math.round(pct)); this.touchDay(); this.save(); },
+  addSpoken(id, res) {
+    const L = this.L(id);
+    for (const w of res.words) for (const s of w.subs) {
+      if (s.ok) { L.words[s.k] = (L.words[s.k] || 0) + 1; this.d.words[s.k] = (this.d.words[s.k] || 0) + 1; this.d.total++; L.total = (L.total || 0) + 1; }
+      else { L.missed[s.k] = (L.missed[s.k] || 0) + 1; this.d.missed[s.k] = (this.d.missed[s.k] || 0) + 1; }
+    }
+    this.touchDay(); this.save();
+  },
+  streak() { const set = new Set(this.d.days); let n = 0; const d = new Date(); if (!set.has(d.toISOString().slice(0, 10))) d.setDate(d.getDate() - 1); while (set.has(d.toISOString().slice(0, 10))) { n++; d.setDate(d.getDate() - 1); } return n; },
+  reset(id) { delete this.d.lessons[id]; this.save(); }
+};
+
+/* ================= voz sintetizada (só no papel do parceiro, atividade 8) ================= */
+const Speech = {
+  voices: [], rate: LS.get('rate', 0.92), voiceName: LS.get('voice', ''),
+  init() { if (!('speechSynthesis' in window)) return; const load = () => { this.voices = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang)); }; load(); speechSynthesis.onvoiceschanged = () => { load(); if (route.name === 'ajustes') render(); }; },
+  ordered() { const us = this.voices.filter(v => /en[-_]US/i.test(v.lang)); const rest = this.voices.filter(v => !/en[-_]US/i.test(v.lang)); const p = a => (/(Google|Natural|Online|Samantha|Alex)/i.test(a.name) ? 0 : 1); return [...us.sort((a, b) => p(a) - p(b)), ...rest.sort((a, b) => p(a) - p(b))]; },
+  voiceFor(speaker) { const list = this.ordered(); if (!list.length) return null; const chosen = list.find(v => v.name === this.voiceName) || list[0]; if (!speaker) return chosen; let x = 0; for (const c of speaker) x = (x * 31 + c.charCodeAt(0)) >>> 0; const pool = [chosen, ...list.filter(v => v !== chosen)].slice(0, 5); return pool[x % pool.length]; },
+  say(text, speaker, rate) {
+    return new Promise(res => {
+      if (!('speechSynthesis' in window)) { res(); return; }
+      speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US';
+      const v = this.voiceFor(speaker); if (v) u.voice = v; u.rate = rate || this.rate;
+      let done = false; const fin = () => { if (!done) { done = true; res(); } }; u.onend = fin; u.onerror = fin;
+      setTimeout(fin, 1500 + text.length * 140 / u.rate); speechSynthesis.speak(u);
+    });
+  },
+  stop() { try { speechSynthesis.cancel(); } catch (e) {} }
+};
+
+/* ================= microfone: reconhecer e gravar ================= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let micStream = null;
+async function getMic() {
+  if (micStream && micStream.getTracks().some(t => t.readyState === 'live')) return micStream;
+  micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  return micStream;
+}
+function releaseMic() { if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; } }
+/* No celular, o reconhecimento de voz e a gravação disputam o microfone; lá usamos só o reconhecimento. */
+const CAN_RECORD = !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && (!IS_MOBILE || !SR);
+async function capture({ maxMs = 15000, onInterim } = {}) {
+  let mr = null, chunks = [], rec = null, finalText = '', interim = '', stopped = false;
+  if (CAN_RECORD) { const stream = await getMic(); mr = new MediaRecorder(stream); mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); }; mr.start(); }
+  else if (!SR) throw new Error('nomic');
+  const recDone = new Promise(res => {
+    if (!SR) { res(); return; }
+    rec = new SR(); rec.lang = 'en-US'; rec.continuous = !IS_MOBILE; rec.interimResults = true;
+    let errored = false;
+    rec.onresult = e => { interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) finalText += ' ' + r[0].transcript; else interim += r[0].transcript; } onInterim && onInterim((finalText + ' ' + interim).trim()); };
+    rec.onerror = (e) => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { errored = true; toast('O navegador bloqueou o microfone. Libere nas configurações do site.'); } };
+    rec.onend = () => { if (!stopped && !errored) { if (interim) { finalText += ' ' + interim; interim = ''; } try { rec.start(); return; } catch (e) {} } res(); };
+    try { rec.start(); } catch (e) { res(); }
+  });
+  const blobP = new Promise(res => { if (!mr) { res(null); return; } mr.onstop = () => res(new Blob(chunks, { type: mr.mimeType || 'audio/webm' })); });
+  let timer;
+  const ctl = { stop() { if (stopped) return; stopped = true; clearTimeout(timer); try { if (mr && mr.state !== 'inactive') mr.stop(); } catch (e) {} try { rec && rec.stop(); } catch (e) {} setTimeout(() => { try { rec && rec.abort(); } catch (e) {} }, 2500); } };
+  ctl.done = Promise.all([blobP, recDone]).then(([blob]) => ({ blob, transcript: (finalText + ' ' + interim).trim() }));
+  timer = setTimeout(() => ctl.stop(), maxMs);
+  return ctl;
+}
+
+/* ================= correção de pronúncia ================= */
+const NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+function numWords(n) { if (n <= 20) return [NUM[n]]; if (n < 100) { const t = TENS[Math.floor(n / 10)], o = n % 10; return o ? [t, NUM[o]] : [t]; }
+  if (n < 1000) { const hnd = Math.floor(n / 100), r = n % 100; return [NUM[hnd], 'hundred', ...(r ? ['and', ...numWords(r)] : [])]; } return [String(n)]; }
+const CONTR = { wherere: ['where', 'are'], gotta: ['got', 'to'], ok: ['okay'], mm: ['mm'], um: ['um'] };
+const keyOf = (w) => w.toLowerCase().replace(/[’'`]/g, '').replace(/[^a-z0-9]/g, '');
+function tokens(s) {
+  return s.toLowerCase().replace(/[’'`]/g, '').replace(/[-–—/:]/g, ' ').replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)
+    .flatMap(t => /^\d+$/.test(t) ? numWords(+t) : (CONTR[t] || [t]));
+}
+function scoreSpeech(target, said) {
+  const words = target.split(/\s+/).filter(Boolean).map(w => ({ w, subs: tokens(w).map(k => ({ k, ok: false })) }));
+  const T = words.flatMap(x => x.subs); const S = tokens(said || '');
+  const n = T.length, m = S.length; const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = T[i].k === S[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  let i = 0, j = 0; while (i < n && j < m) { if (T[i].k === S[j]) { T[i].ok = true; i++; j++; } else if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++; }
+  words.forEach(x => x.ok = x.subs.length > 0 && x.subs.every(s => s.ok));
+  const hit = T.filter(x => x.ok).length;
+  return { words, hit, total: n, pct: n ? hit / n * 100 : 0, said: said || '' };
+}
+const renderScored = (res) => h('div', null, res.words.map(x => [h('span', { class: 'w ' + (x.subs.length ? (x.ok ? 'ok' : 'no') : '') }, x.w), ' ']));
+
+/* ================= formatos de texto ================= */
+const reTimeRange = /^\[\s*([\d:.,]+)\s*-\s*([\d:.,]+)\s*\]\s*/;
+const reTime = /^\[\s*([\d:.,]+)\s*\]\s*/;
+const reSpeaker = /^([A-Za-zÀ-ÿ][\wÀ-ÿ .'-]{0,28}):\s+/;
+function splitPt(s) { const i = s.indexOf('|'); return i < 0 ? [s.trim(), ''] : [s.slice(0, i).trim(), s.slice(i + 1).trim()]; }
+function parseCues(text) {
+  return text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => {
+    let t0 = null, t1 = null, sp = '', m = l.match(reTimeRange);
+    if (m) { t0 = parseTime(m[1]); t1 = parseTime(m[2]); l = l.slice(m[0].length); }
+    m = l.match(reSpeaker); if (m) { sp = m[1].trim(); l = l.slice(m[0].length); }
+    const [en, pt] = splitPt(l); return { t0, t1, speaker: sp, en, pt };
+  }).filter(c => c.en);
+}
+const cuesToText = (cues) => cues.map(c => (c.t0 != null && c.t1 != null ? `[${fmtTime(c.t0)}-${fmtTime(c.t1)}] ` : '') + (c.speaker ? c.speaker + ': ' : '') + c.en + (c.pt ? ' | ' + c.pt : '')).join('\n');
+function parseLyrics(text) { return text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => { let t = null; const m = l.match(reTime); if (m) { t = parseTime(m[1]); l = l.slice(m[0].length); } const [en, pt] = splitPt(l); return { t, en, pt }; }).filter(x => x.en); }
+const lyricsToText = (ls) => ls.map(x => (x.t != null ? `[${fmtTime(x.t)}] ` : '') + x.en + (x.pt ? ' | ' + x.pt : '')).join('\n');
+function parseSrt(text) { return text.replace(/\r/g, '').split(/\n\n+/).map(b => { const ls = b.trim().split('\n'); const ti = ls.findIndex(x => x.includes('-->')); if (ti < 0) return null; const [a, z] = ls[ti].split('-->').map(s => parseTime(s.trim().split(' ')[0])); return { t0: a, t1: z, text: ls.slice(ti + 1).join(' ').replace(/<[^>]+>/g, '').trim() }; }).filter(Boolean); }
+const speakersOf = (lines) => [...new Set(lines.map(c => c.speaker).filter(Boolean))];
+
+/* ================= conteúdo =================
+   Cenas: VOA Learning English, "Let's Learn English" (Voice of America). Texto e vídeos produzidos pela VOA
+   são de domínio público. Transcrições conferidas linha a linha com as páginas oficiais.
+   Traduções para o português: feitas para este curso. */
+const VOA = 'https://voa-video-ns.akamaized.net/pangeavideo/';
+const SONGS = {
+  row: { title: 'Row, Row, Row Your Boat', note: 'canção tradicional, domínio público', lines: parseLyrics(`Row, row, row your boat | Reme, reme, reme o seu barco
+Gently down the stream | Suavemente rio abaixo
+Merrily, merrily, merrily, merrily | Alegremente, alegremente, alegremente, alegremente
+Life is but a dream | A vida não passa de um sonho`) },
+  daisy: { title: 'Daisy Bell (Bicycle Built for Two)', note: 'Harry Dacre, 1892, domínio público', lines: parseLyrics(`Daisy, Daisy, give me your answer, do | Daisy, Daisy, me dê a sua resposta, vai
+I'm half crazy, all for the love of you | Estou meio louco, tudo por amor a você
+It won't be a stylish marriage | Não vai ser um casamento elegante
+I can't afford a carriage | Não tenho dinheiro para uma carruagem
+But you'll look sweet upon the seat | Mas você vai ficar linda no assento
+Of a bicycle built for two | De uma bicicleta feita para dois`) },
+  ballgame: { title: 'Take Me Out to the Ball Game', note: 'Jack Norworth e Albert Von Tilzer, 1908, domínio público', lines: parseLyrics(`Take me out to the ball game | Me leve para o jogo de beisebol
+Take me out with the crowd | Me leve junto com a multidão
+Buy me some peanuts and Cracker Jack | Me compre amendoim e pipoca doce
+I don't care if I never get back | Não me importo se eu nunca mais voltar
+Let me root, root, root for the home team | Deixe-me torcer, torcer, torcer pelo time da casa
+If they don't win, it's a shame | Se eles não ganharem, é uma pena
+For it's one, two, three strikes, you're out | Pois é um, dois, três strikes, você está fora
+At the old ball game | No velho jogo de beisebol`) },
+  grace: { title: 'Amazing Grace', note: 'John Newton, 1779, domínio público', lines: parseLyrics(`Amazing grace, how sweet the sound | Graça maravilhosa, como é doce o som
+That saved a wretch like me | Que salvou um miserável como eu
+I once was lost, but now am found | Eu estava perdido, mas agora fui encontrado
+Was blind, but now I see | Estava cego, mas agora vejo`) },
+};
+const DIALOGUES = {
+  plane: { title: 'On the plane', titlePt: 'No avião', you: 'Passenger', context: 'You are on the plane, and the flight attendant offers drinks during the flight. | Você está no avião e a comissária oferece bebidas durante o voo.', lines: parseCues(`Flight Attendant: Good afternoon. Would you like something to drink? | Boa tarde. Gostaria de beber alguma coisa?
+Passenger: Yes, please. | Sim, por favor.
+Flight Attendant: We have water, juice, or soda. Which one would you like? | Temos água, suco ou refrigerante. Qual você gostaria?
+Passenger: Juice, please. | Suco, por favor.
+Flight Attendant: Orange juice or apple juice? | Suco de laranja ou de maçã?
+Passenger: Orange juice. And could I have some ice? | Suco de laranja. E poderia me dar um pouco de gelo?
+Flight Attendant: Of course. Here you go. | Claro. Aqui está.
+Passenger: Thank you very much. | Muito obrigado.
+Flight Attendant: You're welcome. Enjoy your flight. | De nada. Tenha um bom voo.`) },
+  immigration: { title: 'At immigration', titlePt: 'Na imigração', you: 'Traveler', context: 'You just landed in New York and an officer checks your passport. | Você acabou de chegar a Nova York e um agente confere o seu passaporte.', lines: parseCues(`Officer: Good morning. May I see your passport, please? | Bom dia. Posso ver o seu passaporte, por favor?
+Traveler: Sure. Here it is. | Claro. Aqui está.
+Officer: What is the purpose of your visit? | Qual é o motivo da sua visita?
+Traveler: I'm here on vacation. | Estou aqui de férias.
+Officer: How long are you going to stay? | Quanto tempo você vai ficar?
+Traveler: Two weeks. | Duas semanas.
+Officer: Where are you staying? | Onde você vai se hospedar?
+Traveler: At a hotel in Manhattan. | Em um hotel em Manhattan.
+Officer: All right. Enjoy your stay. | Muito bem. Aproveite a estadia.
+Traveler: Thank you. | Obrigado.`) },
+  restaurant: { title: 'At the restaurant', titlePt: 'No restaurante', you: 'Customer', context: 'You are at a restaurant and the waiter comes to take your order. | Você está em um restaurante e o garçom vem anotar o seu pedido.', lines: parseCues(`Waiter: Good evening. Are you ready to order? | Boa noite. Já posso anotar o pedido?
+Customer: Yes. I'd like the grilled chicken, please. | Sim. Eu queria o frango grelhado, por favor.
+Waiter: Would you like a salad or fries with that? | Quer salada ou batata frita para acompanhar?
+Customer: A salad, please. | Salada, por favor.
+Waiter: And to drink? | E para beber?
+Customer: Just water, no ice. | Só água, sem gelo.
+Waiter: Perfect. Anything else? | Perfeito. Mais alguma coisa?
+Customer: No, thank you. Could you bring the check later? | Não, obrigado. Pode trazer a conta depois?
+Waiter: Of course. I'll be right back with your water. | Claro. Já volto com a sua água.`) },
+  train: { title: 'Buying a train ticket', titlePt: 'Comprando passagem de trem', you: 'Traveler', context: 'You are at the train station and need a ticket to Boston. | Você está na estação e precisa de uma passagem para Boston.', lines: parseCues(`Clerk: Hello. Where are you going today? | Olá. Para onde você vai hoje?
+Traveler: One ticket to Boston, please. | Uma passagem para Boston, por favor.
+Clerk: One way or round trip? | Só ida ou ida e volta?
+Traveler: Round trip, please. I'm coming back on Sunday. | Ida e volta, por favor. Volto no domingo.
+Clerk: That's forty-five dollars. | São quarenta e cinco dólares.
+Traveler: Can I pay by card? | Posso pagar com cartão?
+Clerk: Yes, of course. Your train leaves from platform four at nine fifteen. | Sim, claro. O seu trem sai da plataforma quatro às nove e quinze.
+Traveler: Platform four. Thank you! | Plataforma quatro. Obrigado!`) },
+  pharmacy: { title: 'At the pharmacy', titlePt: 'Na farmácia', you: 'Customer', context: 'You are not feeling well and go to a pharmacy to ask for help. | Você não está se sentindo bem e vai a uma farmácia pedir ajuda.', lines: parseCues(`Pharmacist: Hi. How can I help you? | Oi. Como posso ajudar?
+Customer: I've had a terrible headache since yesterday. | Estou com uma dor de cabeça terrível desde ontem.
+Pharmacist: Do you have any other symptoms, like a fever? | Você tem algum outro sintoma, como febre?
+Customer: No fever, but my throat is a little sore. | Febre não, mas a minha garganta está um pouco dolorida.
+Pharmacist: Are you allergic to any medication? | Você tem alergia a algum remédio?
+Customer: Not that I know of. | Que eu saiba, não.
+Pharmacist: Then I recommend this one. Take one pill every eight hours. | Então recomendo este. Tome um comprimido a cada oito horas.
+Customer: Should I take it with food? | Devo tomar junto com comida?
+Pharmacist: Yes, it's better. And if you don't feel better in three days, see a doctor. | Sim, é melhor. E se não melhorar em três dias, procure um médico.`) },
+  car: { title: 'Renting a car', titlePt: 'Alugando um carro', you: 'Customer', context: 'You landed and go to the rental desk to pick up the car you booked. | Você chegou e vai ao balcão da locadora pegar o carro reservado.', lines: parseCues(`Agent: Good morning. Do you have a reservation? | Bom dia. Você tem reserva?
+Customer: Yes, I booked a compact car online for five days. | Sim, reservei um carro compacto pela internet por cinco dias.
+Agent: Could I see your driver's license and a credit card? | Posso ver a sua carteira de motorista e um cartão de crédito?
+Customer: Here you go. Is insurance included in the price? | Aqui está. O seguro está incluído no preço?
+Agent: Basic insurance is. Full coverage is an extra fifteen dollars a day. | O seguro básico, sim. A cobertura completa custa quinze dólares a mais por dia.
+Customer: I'll take full coverage, just in case. | Vou querer a cobertura completa, por via das dúvidas.
+Agent: Sure. Please return it with a full tank. | Certo. Por favor, devolva com o tanque cheio.
+Customer: Got it. Where can I pick up the car? | Entendido. Onde eu pego o carro?
+Agent: In the parking garage, level two. Have a safe trip! | No estacionamento, no segundo andar. Boa viagem!`) },
+};
+/* As aulas ficam em course.js (window.COURSE_DATA), gerado a partir das transcrições conferidas. */
+Object.entries(window.DIALOGUE_DATA || {}).forEach(([k, d]) => { DIALOGUES[k] = Object.assign({}, d, { lines: parseCues(d.lines) }); });
+const SONG_KEYS = Object.keys(SONGS), DLG_KEYS = Object.keys(DIALOGUES);
+const DLG_SIMPLE = ['plane', 'immigration', 'restaurant', 'train', 'pharmacy', 'car', 'd01', 'd02', 'd03', 'd04', 'd05', 'd06', 'd07', 'd08'].filter(k => DIALOGUES[k]);
+const DLG_INTER = ['d09', 'd10', 'd11', 'd12', 'd13', 'd14', 'd15', 'd16'].filter(k => DIALOGUES[k]);
+let _b = 0, _m = 0;
+const COURSE = (window.COURSE_DATA || []).map((l, i) => { const basic = l.level === 'Básico'; const pool = basic || !DLG_INTER.length ? DLG_SIMPLE : DLG_INTER; const k = basic ? _b++ : _m++;
+  return Object.assign({}, l, { builtin: true, order: i, sceneTitle: l.titleEn, cues: parseCues(l.cues),
+    song: l.song || SONG_KEYS[i % SONG_KEYS.length], dialogue: l.dialogue || pool[k % pool.length] }); });
+/* cronograma: nível 1 em 3 aulas por semana; nível 2 em 2 aulas por semana, com semana de revisão a cada 5 */
+const PLAN = (() => {
+  const weeks = []; const l1 = COURSE.filter(l => l.level === 'Básico'), l2 = COURSE.filter(l => l.level !== 'Básico');
+  for (let i = 0; i < l1.length; i += 3) weeks.push({ lessons: l1.slice(i, i + 3) });
+  for (let i = 0, c = 0; i < l2.length; i += 2) { weeks.push({ lessons: l2.slice(i, i + 2) }); if (++c % 5 === 0 && i + 2 < l2.length) weeks.push({ lessons: [], review: true }); }
+  weeks.push({ lessons: [], review: true, final: true });
+  const per = weeks.length / 8;
+  weeks.forEach((w, k) => { w.n = k + 1; w.month = Math.min(8, Math.floor(k / per) + 1); w.lessons.forEach(l => { l.week = w.n; l.month = w.month; }); });
+  return weeks;
+})();
+
+/* ================= aulas, tempos e rotas ================= */
+let lessons = [];
+const objUrls = new Map();
+function blobUrl(blob, key) { if (!blob) return null; const c = objUrls.get(key); if (c && c.blob === blob) return c.url; const url = URL.createObjectURL(blob); objUrls.set(key, { blob, url }); return url; }
+function videoSrc(l) { if (l.videoBlob) return blobUrl(l.videoBlob, l.id); if (!l.video) return null; return LS.get('hd', false) && l.video.hd ? l.video.hd : l.video.sd; }
+/* tempos de cada fala: marcados por você e guardados neste aparelho */
+function timesOf(l) { return LS.get('times_' + l.id, null) || l.cues.map(c => (c.t0 != null && c.t1 != null ? [c.t0, c.t1] : null)); }
+function timedCues(l) { const t = timesOf(l); return l.cues.map((c, i) => Object.assign({}, c, { i, t0: t[i] ? t[i][0] : null, t1: t[i] ? t[i][1] : null })); }
+function timingState(l) { const t = timesOf(l); const n = t.filter(Boolean).length; return { n, total: l.cues.length, done: n > 0 && LS.get('timesdone_' + l.id, false) || n === l.cues.length }; }
+const songOf = (l) => (l.songLines ? { title: l.songTitle || 'Música', note: '', lines: l.songLines } : SONGS[LS.get('song_' + l.id, l.song)] || SONGS.row);
+const dialogueOf = (l) => l.dialogueObj || DIALOGUES[l.dialogue] || null;
+
+const STEPS = [
+  { n: 1, short: 'Sem legenda', name: 'A cena sem legenda', sub: 'Treino de escuta' },
+  { n: 2, short: 'Legenda em inglês', name: 'Legenda em inglês', sub: 'Ler e ouvir ao mesmo tempo' },
+  { n: 3, short: 'Legenda em português', name: 'Legenda em português', sub: 'Entender o sentido' },
+  { n: 4, short: 'Gravar a sua voz', name: 'Gravar a sua voz', sub: 'Conversação dirigida' },
+  { n: 5, short: 'Ditado interativo', name: 'Ditado interativo', sub: 'Complete o que você ouviu' },
+  { n: 6, short: 'Contracenar', name: 'Contracenar com os atores', sub: 'A sua voz dentro da cena' },
+  { n: 7, short: 'Música e karaokê', name: 'Música e karaokê', sub: 'Aprender relaxando' },
+  { n: 8, short: 'Vida real', name: 'Diálogos da vida real', sub: 'Situações de viagem' },
+  { n: 9, short: 'Fim da aula', name: 'Fim da aula', sub: 'Relatório e revisão' },
+];
+const NEEDS_TIMES = new Set([2, 3, 4, 5, 6]);
+let route = { name: 'home' }; let cleanup = [];
+function parseRoute() {
+  const hs = location.hash.slice(1) || 'home'; let m;
+  if ((m = hs.match(/^aula-(.+)-(\d)$/))) return { name: 'aula', id: m[1], step: +m[2] };
+  if ((m = hs.match(/^tempos-(.+)$/))) return { name: 'tempos', id: m[1] };
+  if ((m = hs.match(/^editar-(.+)$/))) return { name: 'editar', id: m[1] };
+  if (['home', 'progresso', 'nova', 'ajustes'].includes(hs)) return { name: hs };
+  return { name: 'home' };
+}
+function go(hash) { if (location.hash === '#' + hash) render(); else location.hash = hash; }
+function render() {
+  cleanup.forEach(f => { try { f(); } catch (e) {} }); cleanup = []; Speech.stop();
+  route = parseRoute();
+  document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === route.name || ((route.name === 'aula' || route.name === 'tempos') && a.dataset.nav === 'home')));
+  const app = $('#app'); app.innerHTML = '';
+  const byId = id => lessons.find(l => l.id === id);
+  const view = { home: viewHome, progresso: viewProgress, nova: () => viewEditor(null), editar: () => viewEditor(byId(route.id)), ajustes: viewSettings, aula: viewLesson, tempos: () => viewTiming(byId(route.id)) }[route.name];
+  app.append(view());
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', render);
+function supportBanner() {
+  if (SR) return null;
+  return h('div', { class: 'banner' }, h('b', null, 'Atenção: '), IS_MOBILE
+    ? 'este navegador não corrige a pronúncia. No Android, use o Google Chrome. No iPhone, use o Safari atualizado e ative o Siri e o Ditado em Ajustes > Geral > Teclado.'
+    : 'este navegador não corrige a pronúncia. Use o Google Chrome ou o Microsoft Edge para ter todas as atividades.');
+}
+
+/* ================= início ================= */
+function lessonDone(l) { return Object.keys(Progress.L(l.id).done).length >= 9; }
+function weekDone(w) { return w.review ? LS.get('rev_' + w.n, false) : w.lessons.every(lessonDone); }
+function lessonCard(l) {
+  const P = Progress.L(l.id); const nextStep = (STEPS.find(s => !P.done[s.n]) || STEPS[0]).n; const ts = timingState(l);
+  return h('article', { class: 'lcard' },
+    h('div', { class: 'meta' }, h('span', null, l.num || 'Minha aula'), lessonDone(l) ? h('span', { class: 'tagline ok' }, 'concluída') : (ts.n ? null : h('span', { class: 'tagline warn' }, 'marcar tempos'))),
+    h('h3', null, l.title), h('div', { class: 'muted small' }, l.sceneTitle || ''),
+    l.focus ? h('div', { class: 'small' }, h('b', null, 'Foco: '), l.focus) : null,
+    h('div', { class: 'pips', 'aria-label': Object.keys(P.done).length + ' de 9 etapas' }, STEPS.map(s => h('span', { class: 'pip' + (P.done[s.n] ? ' on' : '') }))),
+    h('div', { class: 'row' }, h('a', { class: 'btn primary', href: `#aula-${l.id}-${nextStep}` }, Object.keys(P.done).length ? 'Continuar' : 'Começar'),
+      l.builtin ? null : h('a', { class: 'btn ghost sm', href: `#editar-${l.id}` }, 'Editar')));
+}
+function reviewCard(w) {
+  const prev = PLAN.filter(x => x.n < w.n && !x.review).slice(w.final ? -4 : -5).flatMap(x => x.lessons);
+  const done = LS.get('rev_' + w.n, false);
+  return h('article', { class: 'lcard', style: 'grid-column:1/-1' },
+    h('div', { class: 'meta' }, h('span', null, w.final ? 'Revisão final' : 'Semana de revisão'), done ? h('span', { class: 'tagline ok' }, 'concluída') : null),
+    h('h3', null, w.final ? 'Revisão final do curso' : 'Revisão das últimas semanas'),
+    h('p', { class: 'small muted', style: 'margin:0' }, 'Refaça o ditado (atividade 5) e o contracenar (atividade 6) das aulas abaixo, e revise as palavras que mais travaram em Progresso.'),
+    h('div', { class: 'tags' }, prev.map(l => h('a', { class: 'tag', style: 'text-decoration:none', href: `#aula-${l.id}-5` }, l.title))),
+    h('div', { class: 'row' }, h('button', { class: 'btn ' + (done ? 'ghost' : 'good'), onclick: () => { LS.set('rev_' + w.n, !done); render(); } }, done ? 'Marcar como não feita' : 'Marcar revisão como feita')));
+}
+function viewHome() {
+  const root = h('div'); const b = supportBanner(); if (b) root.append(b);
+  const done = COURSE.filter(lessonDone).length;
+  const curWeek = PLAN.find(w => !weekDone(w)) || PLAN[PLAN.length - 1];
+  const nextLesson = curWeek.lessons.find(l => !lessonDone(l));
+  root.append(h('section', { class: 'hero' },
+    h('div', null, h('div', { class: 'eyebrow' }, 'Meu curso de inglês · 8 meses'), h('h1', null, 'Do básico ao intermediário, uma cena por vez.'),
+      h('p', { class: 'muted' }, `${COURSE.length} aulas com vídeos reais da VOA. Do mês 1 ao 4, o nível básico, com 3 aulas por semana. Do mês 5 ao 8, o intermediário, com 2 aulas por semana e semanas de revisão.`)),
+    h('div', { class: 'stats' },
+      h('div', { class: 'stat big' }, h('div', { class: 'n' }, Progress.d.total.toLocaleString('pt-BR')), h('div', { class: 'l' }, 'palavras faladas corretamente')),
+      h('div', { class: 'stat' }, h('div', { class: 'n' }, Progress.streak()), h('div', { class: 'l' }, 'dias seguidos de estudo')),
+      h('div', { class: 'stat' }, h('div', { class: 'n' }, done + '/' + COURSE.length), h('div', { class: 'l' }, 'aulas concluídas')))));
+  const pct = Math.round(PLAN.filter(weekDone).length / PLAN.length * 100);
+  root.append(h('section', { class: 'panel', style: 'margin-bottom:24px' },
+    h('div', { class: 'eyebrow' }, `Mês ${curWeek.month} · Semana ${curWeek.n} de ${PLAN.length}`),
+    h('div', { class: 'row', style: 'justify-content:space-between;margin:6px 0 12px' }, h('h2', { style: 'font-size:24px' }, curWeek.review ? 'Semana de revisão' : 'Esta semana'),
+      nextLesson ? h('a', { class: 'btn primary', href: `#aula-${nextLesson.id}-${(STEPS.find(s => !Progress.L(nextLesson.id).done[s.n]) || STEPS[0]).n}` }, 'Continuar de onde parei', ic('next')) : null),
+    h('div', { class: 'pips', style: 'margin-bottom:6px' }, h('span', { class: 'pip on', style: `flex:0 0 ${pct}%` }), h('span', { class: 'pip', style: 'flex:1' })),
+    h('div', { class: 'small muted', style: 'margin-bottom:14px' }, `${pct}% do curso concluído`),
+    h('div', { class: 'lessons' }, curWeek.review ? reviewCard(curWeek) : curWeek.lessons.map(lessonCard))));
+  root.append(h('div', { class: 'method', 'aria-label': 'Sequência de uma aula' }, STEPS.map(s => h('div', { class: 'mstep' + (s.n === 9 ? ' end' : '') }, h('span', { class: 'dot' }, s.n === 9 ? '★' : '0' + s.n), s.short))));
+  root.append(h('div', { class: 'lvhead', style: 'margin-bottom:12px' }, h('h2', null, 'Cronograma')));
+  for (let m = 1; m <= 8; m++) {
+    const ws = PLAN.filter(w => w.month === m); if (!ws.length) continue; const mDone = ws.every(weekDone);
+    const lvl = ws.some(w => w.lessons.some(l => l.level === 'Básico')) ? 'Básico' : 'Intermediário';
+    root.append(h('details', { class: 'month', open: m === curWeek.month },
+      h('summary', null, h('span', { class: 'mname' }, `Mês ${m}`), h('span', { class: 'small muted' }, `${lvl} · semanas ${ws[0].n}–${ws[ws.length - 1].n}`), mDone ? h('span', { class: 'tagline ok' }, 'concluído') : null),
+      ws.map(w => h('div', { class: 'week' }, h('div', { class: 'wk' + (w === curWeek ? ' now' : '') }, `Semana ${w.n}`, weekDone(w) ? ' ✓' : ''),
+        h('div', { class: 'lessons' }, w.review ? reviewCard(w) : w.lessons.map(lessonCard))))));
+  }
+  const mine = lessons.filter(l => !l.builtin);
+  root.append(h('section', { style: 'margin-top:30px' }, h('div', { class: 'lvhead', style: 'margin-bottom:12px' }, h('h2', null, 'Minhas aulas')),
+    h('div', { class: 'lessons' }, mine.map(lessonCard), h('a', { class: 'lcard newcard', href: '#nova', style: 'text-decoration:none' }, h('h3', null, '+ Criar aula'), h('div', { class: 'muted small' }, 'Use um vídeo seu (arquivo ou link de .mp4) com as falas em inglês e português.')))));
+  root.append(credit());
+  return root;
+}
+function credit(l) {
+  return h('p', { class: 'credit' }, 'Vídeos e transcrições das cenas: VOA Learning English, Voice of America (voanews.com), material de domínio público. Traduções e atividades: Cena a Cena.',
+    l && l.page ? [' ', h('a', { href: l.page, target: '_blank', rel: 'noopener' }, 'Ver esta aula no site da VOA')] : null);
+}
+
+/* ================= palco de vídeo ================= */
+const maskOf = (l) => LS.get('mask_' + l.id, LS.get('mask', 0.22));
+const maskOn = () => LS.get('maskon', true);
+class Stage {
+  constructor(l, { controls = true, onCue, cues, mask = true } = {}) {
+    this.l = l; this.cues = cues || timedCues(l); this.mode = 'none'; this.token = 0;
+    this.box = h('div', { class: 'screen' + (mask && maskOn() ? '' : ' nomask') }); this.subs = h('div', { class: 'subs', 'aria-live': 'polite' });
+    const v = this.video = h('video', { src: videoSrc(l), playsinline: true, 'webkit-playsinline': true, preload: 'metadata' });
+    v.addEventListener('error', () => { if (!this.box.querySelector('.err')) this.box.append(h('div', { class: 'err' }, 'O vídeo não carregou. Confira a sua internet e tente de novo. Se continuar, troque a qualidade em Ajustes.')); });
+    this.box.append(v);
+    if (mask && maskOn()) { this.box.append(h('div', { class: 'mask', 'aria-hidden': 'true' })); this.box.style.setProperty('--mh', maskOf(l)); }
+    this.box.append(this.subs);
+    this.el = h('div', { class: 'player' }, this.box);
+    v.addEventListener('timeupdate', () => { const t = v.currentTime; const c = this.cues.find(c => c.t0 != null && t >= c.t0 && t < c.t1); this.show(c); onCue && onCue(c ? c.i : -1); });
+    /* acompanha a área real da imagem dentro do quadro, para a tarja cair sempre sobre a legenda gravada */
+    const layout = () => { const W = this.box.clientWidth, H = this.box.clientHeight, vw = v.videoWidth || 16, vh = v.videoHeight || 9; if (!W || !H) return; const s = Math.min(W / vw, H / vh); const fw = vw * s, fh = vh * s;
+      this.box.style.setProperty('--fx', (W - fw) / 2 + 'px'); this.box.style.setProperty('--fy', (H - fh) / 2 + 'px'); this.box.style.setProperty('--fw', fw + 'px'); this.box.style.setProperty('--fh', fh + 'px'); };
+    v.addEventListener('loadedmetadata', layout);
+    if (window.ResizeObserver) { const ro = new ResizeObserver(layout); ro.observe(this.box); cleanup.push(() => ro.disconnect()); } else window.addEventListener('resize', layout);
+    if (controls) this.el.append(this.buildBar(mask && maskOn()));
+  }
+  buildBar(withMask) {
+    const v = this.video; const fmt = s => { if (!isFinite(s)) return '0:00'; const m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ':' + (r < 10 ? '0' : '') + r; };
+    const pp = h('button', { 'aria-label': 'Tocar ou pausar', html: ICON.play, onclick: () => { v.paused ? v.play().catch(() => {}) : v.pause(); } });
+    const seek = h('input', { type: 'range', min: 0, max: 1000, value: 0, step: 1, 'aria-label': 'Posição do vídeo', oninput: () => { if (v.duration) v.currentTime = seek.value / 1000 * v.duration; } });
+    const time = h('span', { class: 'time' }, '0:00 / 0:00');
+    const back = h('button', { 'aria-label': 'Voltar 5 segundos', onclick: () => { v.currentTime = Math.max(0, v.currentTime - 5); } }, '−5s');
+    const upd = () => { pp.innerHTML = v.paused ? ICON.play : ICON.stop; time.textContent = fmt(v.currentTime) + ' / ' + fmt(v.duration); if (v.duration && document.activeElement !== seek) seek.value = Math.round(v.currentTime / v.duration * 1000); };
+    ['play', 'pause', 'timeupdate', 'loadedmetadata', 'ended'].forEach(e => v.addEventListener(e, upd));
+    const el = this.el; const canFull = !!(el.requestFullscreen || el.webkitRequestFullscreen);
+    const full = canFull ? h('button', { 'aria-label': 'Tela cheia', html: ICON.full, onclick: () => { try { if (document.fullscreenElement) document.exitFullscreen(); else (el.requestFullscreen || el.webkitRequestFullscreen).call(el); } catch (e) {} } }) : null;
+    let row = null;
+    const tarja = withMask ? h('button', { 'aria-label': 'Ajustar a tarja', title: 'Ajustar a tarja que cobre a legenda do vídeo', onclick: () => {
+      if (row) { row.remove(); row = null; return; }
+      const r = h('input', { type: 'range', min: 0.08, max: 0.45, step: 0.01, value: maskOf(this.l), 'aria-label': 'Altura da tarja', oninput: e => { this.box.style.setProperty('--mh', e.target.value); LS.set('mask_' + this.l.id, +e.target.value); } });
+      row = h('div', { class: 'maskrow' }, h('span', null, 'Altura da tarja:'), r, h('span', { style: 'opacity:.7' }, 'aumente até a legenda do vídeo sumir'));
+      el.append(row); } }, 'Tarja') : null;
+    return h('div', { class: 'bar' }, pp, back, seek, time, tarja, full);
+  }
+  fullBtn() { return null; }
+  setMode(m) { this.mode = m; this.show(this._cur); }
+  show(c, force) {
+    if (c === this._cur && !force && this._m === (force || this.mode)) return;
+    this._cur = c; this._m = force || this.mode; this.subs.innerHTML = ''; const m = this._m; if (!c || m === 'none') return;
+    if (m === 'en' || m === 'both') this.subs.append(h('div', null, h('span', { class: 'en' }, c.en)));
+    if ((m === 'pt' || m === 'both') && c.pt) this.subs.append(h('div', null, h('span', { class: 'pt' }, c.pt)));
+  }
+  stop() { this.token++; this.video.pause(); this.video.muted = false; this.video.playbackRate = 1; }
+  async playCue(i, { muted = false, rate = 1, force } = {}) {
+    const c = this.cues.find(x => x.i === i); if (!c || c.t0 == null) return false;
+    const tk = ++this.token; const v = this.video; v.muted = muted; v.playbackRate = rate;
+    try { v.currentTime = Math.max(0, c.t0); } catch (e) {}
+    this.show(c, force || this.mode);
+    try { await v.play(); } catch (e) { return false; }
+    await new Promise(res => { const iv = setInterval(() => { if (tk !== this.token || v.currentTime >= c.t1 || v.ended || v.paused) { clearInterval(iv); if (tk === this.token) v.pause(); res(); } }, 50); });
+    v.muted = false; v.playbackRate = 1;
+    return tk === this.token;
+  }
+  fullBtn() {
+    const el = this.el; if (!(el.requestFullscreen || el.webkitRequestFullscreen)) return null;
+    return h('button', { class: 'btn sm', onclick: () => { try { if (document.fullscreenElement) document.exitFullscreen(); else (el.requestFullscreen || el.webkitRequestFullscreen).call(el); } catch (e) {} } }, ic('full'), 'Tela cheia');
+  }
+}
+
+/* ================= tela da aula ================= */
+function viewLesson() {
+  const l = lessons.find(x => x.id === route.id);
+  if (!l) return h('div', { class: 'panel' }, h('h2', null, 'Aula não encontrada'), h('p', null, h('a', { href: '#home' }, 'Voltar para as aulas')));
+  const P = Progress.L(l.id); const root = h('div'); const b = supportBanner(); if (b) root.append(b);
+  root.append(h('div', { class: 'lhead' },
+    h('div', null, h('div', { class: 'eyebrow' }, (l.month ? `Mês ${l.month} · Semana ${l.week} · ` : '') + (l.num || 'Minha aula')), h('h1', null, l.title), l.focus ? h('div', { class: 'small muted', style: 'margin-top:4px' }, 'Foco: ' + l.focus) : null),
+    h('div', { class: 'row' }, h('a', { class: 'btn ghost sm', href: '#tempos-' + l.id }, 'Tempos das falas'), h('a', { class: 'btn ghost sm', href: '#home' }, 'Todas as aulas'))));
+  root.append(h('nav', { class: 'stepper', 'aria-label': 'Atividades da aula' }, STEPS.map(s =>
+    h('a', { href: `#aula-${l.id}-${s.n}`, class: s.n === route.step ? 'on' : '' }, h('span', { class: 'k' }, h('span', null, s.n === 9 ? 'FIM' : '0' + s.n), P.done[s.n] ? h('span', { class: 'ok' }, '✓') : ''), s.short))));
+  setTimeout(() => { const on = root.querySelector('.stepper a.on'); if (on) on.scrollIntoView({ block: 'nearest', inline: 'center' }); }, 0);
+  if (NEEDS_TIMES.has(route.step) && !timingState(l).n) root.append(needTimes(l));
+  else root.append([null, act1, act2, act3, act4, act5, act6, act7, act8, act9][route.step](l));
+  root.append(credit(l));
+  return root;
+}
+function panel(step, lead, ...body) {
+  const s = STEPS[step - 1];
+  return h('section', { class: 'panel' }, h('div', { class: 'eyebrow' }, (step === 9 ? 'Fim' : 'Atividade 0' + step) + ' · ' + s.sub), h('h2', { style: 'margin-top:6px' }, s.name), h('p', { class: 'lead' }, lead), ...body);
+}
+function finishBar(l, step, getPct) {
+  return h('div', { class: 'actions' },
+    step > 1 ? h('a', { class: 'btn ghost', href: `#aula-${l.id}-${step - 1}` }, 'Anterior') : h('span'),
+    h('button', { class: 'btn primary', onclick: () => { Progress.mark(l.id, step, getPct ? getPct() : null); toast('Atividade concluída'); go(`aula-${l.id}-${step + 1}`); } }, 'Concluir e seguir', ic('next')));
+}
+function needTimes(l) {
+  return h('section', { class: 'panel' }, h('div', { class: 'eyebrow' }, 'Antes de continuar'), h('h2', { style: 'margin-top:6px' }, 'Marque os tempos das falas'),
+    h('p', { class: 'lead' }, 'A partir daqui as atividades usam o vídeo fala por fala. Para isso, a plataforma precisa saber onde cada fala começa e termina. Você faz isso uma vez por aula, segurando um botão enquanto cada fala acontece. Leva uns 5 minutos.'),
+    h('div', { class: 'row' }, h('a', { class: 'btn primary', href: '#tempos-' + l.id }, 'Marcar os tempos agora'), h('a', { class: 'btn ghost', href: `#aula-${l.id}-1` }, 'Voltar à atividade 1')));
+}
+async function micGuard(fn) { try { await fn(); } catch (e) { console.error(e); toast(e && e.message === 'nomic' ? 'Este navegador não tem acesso ao microfone.' : 'Não consegui usar o microfone. Libere o acesso nas configurações do site.'); } }
+
+/* ---------- marcar tempos ---------- */
+function viewTiming(l) {
+  if (!l) return h('div', { class: 'panel' }, h('h2', null, 'Aula não encontrada'));
+  const times = timesOf(l).map(x => x ? x.slice() : null); let cur = Math.max(0, times.findIndex(x => !x)); if (times.every(Boolean)) cur = 0;
+  const stage = new Stage(l, { controls: true, mask: false, cues: l.cues.map((c, i) => Object.assign({}, c, { i, t0: null, t1: null })) }); cleanup.push(() => stage.stop());
+  const v = stage.video; let downAt = null;
+  const lineBox = h('div'); const list = h('div', { class: 'lines', style: 'max-height:360px' });
+  const save = () => { LS.set('times_' + l.id, times); };
+  function draw() {
+    const c = l.cues[cur]; lineBox.innerHTML = '';
+    if (c) lineBox.append(h('div', { class: 'counter' }, `Fala ${cur + 1} de ${l.cues.length}`), h('div', { class: 'focus-line', style: 'text-align:left' }, h('div', { class: 'small', style: 'font-weight:400;opacity:.75' }, c.speaker), c.en),
+      l.cues[cur + 1] ? h('div', { class: 'small muted' }, 'Depois: ' + (l.cues[cur + 1].speaker ? l.cues[cur + 1].speaker + ': ' : '') + l.cues[cur + 1].en) : null);
+    else lineBox.append(h('div', { class: 'focus-line' }, 'Todas as falas foram marcadas!'));
+    list.innerHTML = '';
+    l.cues.forEach((x, i) => list.append(h('div', { class: 'line' + (i === cur ? ' cur' : '') + (times[i] ? ' done' : '') + (times[i] === false ? ' skip' : ''), onclick: () => { cur = i; if (times[i]) { try { v.currentTime = Math.max(0, times[i][0] - 1.5); } catch (e) {} } draw(); } },
+      h('span', { class: 'sc tc' }, times[i] ? fmtTime(times[i][0]) + '–' + fmtTime(times[i][1]) : (times[i] === false ? 'pulada' : '')), h('div', { class: 'sp' }, x.speaker), h('div', null, x.en))));
+    const el = list.children[cur]; if (el) el.scrollIntoView({ block: 'nearest' });
+    count.textContent = `${times.filter(Boolean).length} de ${l.cues.length} falas marcadas`;
+  }
+  const count = h('span', { class: 'counter' });
+  const hold = h('button', { class: 'hold', 'aria-label': 'Segure enquanto a fala acontece' }, 'Segure enquanto a fala acontece', h('small', null, 'aperte quando a fala começar e solte quando ela terminar'));
+  const press = (e) => { e.preventDefault(); if (cur >= l.cues.length) return; if (v.paused) v.play().catch(() => {}); downAt = v.currentTime; hold.classList.add('down'); try { hold.setPointerCapture(e.pointerId); } catch (x) {} };
+  const release = (e) => { if (downAt == null) return; e && e.preventDefault(); hold.classList.remove('down'); const t1 = v.currentTime; const rate = v.playbackRate || 1;
+    const t0 = Math.max(0, downAt - 0.25 * rate); const end = t1 + 0.1 * rate; downAt = null;
+    if (end - t0 < 0.3) { toast('Muito curto. Segure durante toda a fala.'); return; }
+    times[cur] = [+t0.toFixed(2), +end.toFixed(2)]; save(); cur++; while (cur < l.cues.length && times[cur]) cur++; draw(); };
+  hold.addEventListener('pointerdown', press); hold.addEventListener('pointerup', release); hold.addEventListener('pointercancel', release);
+  hold.addEventListener('contextmenu', e => e.preventDefault());
+  const key = (e) => { if (e.code !== 'Space' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; e.preventDefault(); if (e.type === 'keydown' && !e.repeat && downAt == null) press(e); if (e.type === 'keyup') release(e); };
+  document.addEventListener('keydown', key); document.addEventListener('keyup', key); cleanup.push(() => { document.removeEventListener('keydown', key); document.removeEventListener('keyup', key); });
+  const speed = h('div', { class: 'seg' }); [[1, 'Normal'], [0.75, '0,75×'], [0.5, '0,5×']].forEach(([r, t]) => speed.append(h('button', { class: r === 1 ? 'on' : '', onclick: e => { v.playbackRate = r; speed.querySelectorAll('button').forEach(b => b.classList.remove('on')); e.currentTarget.classList.add('on'); } }, t)));
+  const review = h('button', { class: 'btn sm', onclick: async () => { const i = cur - 1 >= 0 ? cur - 1 : 0; if (!times[i]) return; const keep = stage.cues; stage.cues = [Object.assign({}, l.cues[i], { i, t0: times[i][0], t1: times[i][1] })]; await stage.playCue(i, { force: 'en' }); stage.cues = keep; stage.show(null, 'none'); } }, ic('ear'), 'Conferir a última');
+  draw();
+  return h('div', null,
+    h('div', { class: 'lhead' }, h('div', null, h('div', { class: 'eyebrow' }, (l.num || 'Minha aula') + ' · Tempos das falas'), h('h1', null, l.title)), h('a', { class: 'btn ghost sm', href: `#aula-${l.id}-2` }, 'Voltar à aula')),
+    h('section', { class: 'panel' },
+      h('p', { class: 'lead', style: 'margin-top:0' }, 'Dê play no vídeo. Quando a fala em destaque começar, aperte e segure o botão. Solte quando ela terminar. A próxima fala aparece sozinha. Se uma fala não estiver no vídeo, pule. No computador, você também pode segurar a barra de espaço.'),
+      h('div', { class: 'grid2' },
+        h('div', null, stage.el, h('div', { class: 'under' }, speed, stage.fullBtn()), h('div', { style: 'margin-top:12px' }, lineBox), h('div', { style: 'margin-top:10px' }, hold),
+          h('div', { class: 'row', style: 'margin-top:10px' },
+            h('button', { class: 'btn sm', onclick: () => { if (cur > 0) cur--; if (times[cur]) { try { v.currentTime = Math.max(0, times[cur][0] - 1.5); } catch (e) {} } draw(); } }, 'Voltar uma fala'),
+            h('button', { class: 'btn sm', onclick: () => { if (cur < l.cues.length) { times[cur] = false; save(); cur++; draw(); } } }, 'Pular esta fala'),
+            review)),
+        h('div', null, h('div', { class: 'row', style: 'justify-content:space-between;margin-bottom:8px' }, count,
+          h('button', { class: 'btn ghost sm', onclick: (e) => { if (!e.currentTarget.dataset.c) { e.currentTarget.dataset.c = 1; e.currentTarget.textContent = 'Toque de novo para apagar'; return; } times.fill(null); save(); cur = 0; draw(); e.currentTarget.dataset.c = ''; e.currentTarget.textContent = 'Apagar tempos'; } }, 'Apagar tempos')), list)),
+      h('div', { class: 'actions' }, h('span', { class: 'small muted' }, 'Os tempos ficam salvos neste aparelho. Para levar a outro aparelho, use o backup em Ajustes.'),
+        h('button', { class: 'btn primary', onclick: () => { if (!times.some(Boolean)) { toast('Marque pelo menos uma fala'); return; } LS.set('timesdone_' + l.id, true); go(`aula-${l.id}-2`); } }, 'Pronto, ir para a aula', ic('next')))));
+}
+
+/* ---------- 1: sem legenda ---------- */
+function act1(l) {
+  const stage = new Stage(l); stage.setMode('none'); cleanup.push(() => stage.stop());
+  const q = l.question; let correct = null;
+  const opts = h('div'); const fb = h('div', { class: 'small', style: 'margin-top:8px;min-height:1.5em' });
+  if (q && q.options && q.options.length) q.options.forEach((o, i) => opts.append(h('label', { class: 'opt' }, h('input', { type: 'radio', name: 'q1', value: i }), h('span', { class: 't' }, h('div', null, o.en), o.pt ? h('details', null, h('summary', { class: 'small muted' }, 'tradução'), h('div', { class: 'pt' }, o.pt)) : null))));
+  const send = h('button', { class: 'btn primary', onclick: () => {
+    const sel = opts.querySelector('input:checked'); if (!sel) { toast('Escolha uma alternativa'); return; }
+    correct = +sel.value === q.correct;
+    opts.querySelectorAll('.opt').forEach((o, i) => { o.classList.toggle('right', i === q.correct); o.classList.toggle('wrong', i === +sel.value && !correct); });
+    fb.textContent = correct ? 'Isso! Você entendeu a cena sem legenda.' : 'Ainda não. Assista de novo prestando atenção nas palavras-chave. A resposta certa está em verde.';
+  } }, 'Enviar resposta');
+  return panel(1, 'Assista ao vídeo inteiro sem legenda, quantas vezes quiser. Tente pegar a ideia geral, não cada palavra. Depois responda à pergunta. A faixa escura embaixo do vídeo esconde a legenda que já vem gravada nele. Se ainda aparecer algum texto, toque em "Tarja" e aumente a altura.',
+    h('div', { class: 'grid2' },
+      h('div', null, stage.el, h('div', { class: 'under' }, stage.fullBtn(), h('span', { class: 'tip' }, 'Treino de escuta'))),
+      h('div', null, q ? [h('div', { class: 'q' }, q.en), q.pt ? h('details', { style: 'margin:-4px 0 12px' }, h('summary', { class: 'small muted' }, 'ver a pergunta em português'), h('div', { class: 'qpt', style: 'margin:4px 0 0' }, q.pt)) : null, opts, h('div', { class: 'row' }, send), fb] : h('p', { class: 'muted' }, 'Esta aula não tem pergunta.'))),
+    finishBar(l, 1, () => correct == null ? null : (correct ? 100 : 0)));
+}
+
+/* ---------- 2 e 3: legendas ---------- */
+function subsAct(l, step, mode) {
+  let cur = -1; const list = h('div', { class: 'lines' });
+  const stage = new Stage(l, { onCue: i => mark(i) }); stage.setMode(mode); cleanup.push(() => stage.stop());
+  function mark(i) { if (i === cur) return; cur = i; [...list.children].forEach(el => el.classList.toggle('cur', +el.dataset.i === i)); const el = list.querySelector(`[data-i="${i}"]`); if (el) el.scrollIntoView({ block: 'nearest' }); }
+  stage.cues.forEach(c => list.append(h('div', { class: 'line' + (c.t0 == null ? ' skip' : ''), 'data-i': c.i, onclick: () => { if (c.t0 != null) { mark(c.i); stage.playCue(c.i); } } },
+    c.speaker ? h('div', { class: 'sp' }, c.speaker) : null, mode === 'pt' ? [h('div', null, c.pt || c.en), h('div', { class: 'pt' }, c.en)] : [h('div', null, c.en), h('details', { onclick: e => e.stopPropagation() }, h('summary', { class: 'small muted' }, 'tradução'), h('div', { class: 'pt' }, c.pt))])));
+  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Legenda' });
+  const opts = mode === 'en' ? [['en', 'Inglês'], ['none', 'Sem legenda']] : [['pt', 'Português'], ['both', 'Inglês + português'], ['en', 'Só inglês']];
+  opts.forEach(([k, t], i) => seg.append(h('button', { class: i === 0 ? 'on' : '', onclick: e => { seg.querySelectorAll('button').forEach(b => b.classList.remove('on')); e.currentTarget.classList.add('on'); stage.setMode(k); } }, t)));
+  const lead = mode === 'en' ? 'Agora assista com a legenda em inglês. Leia enquanto ouve: é aqui que o som das palavras se liga à escrita. Toque numa fala para ouvir só aquele trecho.'
+    : 'Agora com a legenda em português, para entender o sentido de cada fala. Se quiser, mostre o inglês e o português juntos.';
+  return panel(step, lead, h('div', { class: 'grid2' }, h('div', null, stage.el, h('div', { class: 'under' }, seg, stage.fullBtn())), list), finishBar(l, step));
+}
+const act2 = (l) => subsAct(l, 2, 'en');
+const act3 = (l) => subsAct(l, 3, 'pt');
+
+/* ---------- 4: gravar a sua voz ---------- */
+function act4(l) {
+  const stage = new Stage(l, { controls: false }); stage.setMode('en'); cleanup.push(() => stage.stop());
+  const cues = stage.cues.filter(c => c.t0 != null); let k = 0; const results = {}; let ctl = null;
+  const list = h('div', { class: 'lines' }); const focus = h('div', { class: 'focus-line' }); const focusPt = h('div', { class: 'focus-pt' });
+  const heard = h('div', { class: 'heard' }); const myAudio = h('div');
+  const recBtn = h('button', { class: 'btn rec' }, ic('mic'), 'Gravar');
+  function drawList() {
+    list.innerHTML = '';
+    cues.forEach((c, j) => list.append(h('div', { class: 'line' + (j === k ? ' cur' : '') + (results[c.i] ? ' done' : ''), onclick: () => select(j) },
+      results[c.i] ? h('span', { class: 'sc' }, Math.round(results[c.i].pct) + '%') : null, c.speaker ? h('div', { class: 'sp' }, c.speaker) : null, h('div', null, c.en), h('div', { class: 'pt' }, c.pt))));
+    const el = list.children[k]; if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+  function select(j) {
+    if (ctl) ctl.stop(); k = j; const c = cues[j]; focus.textContent = c.en; focusPt.textContent = c.pt || ''; myAudio.innerHTML = '';
+    heard.innerHTML = ''; heard.append(h('span', { class: 'lbl' }, 'O que eu entendi'), results[c.i] ? renderScored(results[c.i]) : h('span', { class: 'muted' }, 'Ouça o trecho e depois grave a frase.'));
+    recBtn.innerHTML = ICON.mic + ' Gravar'; drawList();
+  }
+  recBtn.onclick = () => micGuard(async () => {
+    if (ctl) { ctl.stop(); return; }
+    stage.stop(); const c = cues[k]; const words = c.en.split(/\s+/).length;
+    recBtn.classList.add('live'); recBtn.innerHTML = ICON.stop + ' Parar';
+    heard.innerHTML = ''; const live = h('span', { class: 'muted' }, 'Fale agora…'); heard.append(h('span', { class: 'lbl' }, 'Ouvindo'), live);
+    ctl = await capture({ maxMs: Math.max(5000, words * 900 + 3000), onInterim: t => live.textContent = t });
+    const { blob, transcript } = await ctl.done; ctl = null;
+    recBtn.classList.remove('live'); recBtn.innerHTML = ICON.mic + ' Gravar de novo';
+    heard.innerHTML = '';
+    if (SR) { const res = scoreSpeech(c.en, transcript); results[c.i] = res; Progress.addSpoken(l.id, res);
+      heard.append(h('span', { class: 'lbl' }, `Acertei ${res.hit} de ${res.total} palavras`), renderScored(res), h('div', { class: 'small muted', style: 'margin-top:6px' }, transcript ? 'Reconhecido: “' + transcript + '”' : 'Não ouvi nada. Fale mais perto do microfone.')); }
+    else heard.append(h('span', { class: 'lbl' }, 'Gravação feita'), h('span', { class: 'muted' }, 'Sem correção automática neste navegador. Compare ouvindo a sua gravação.'));
+    myAudio.innerHTML = ''; if (blob) myAudio.append(h('div', { class: 'small muted', style: 'margin-top:8px' }, 'Sua voz:'), h('audio', { controls: true, src: URL.createObjectURL(blob) }));
+    drawList();
+  });
+  cleanup.push(() => { if (ctl) ctl.stop(); });
+  select(0);
+  return panel(4, 'Frase por frase: ouça o ator, grave a sua voz e veja quais palavras saíram certas. Repita até ficar natural. O objetivo é treinar a boca, não ser perfeito.',
+    h('div', { class: 'grid2' },
+      h('div', null, stage.el, focus, focusPt,
+        h('div', { class: 'row', style: 'justify-content:center' },
+          h('button', { class: 'btn', onclick: () => stage.playCue(cues[k].i) }, ic('ear'), 'Ouvir'),
+          h('button', { class: 'btn', onclick: () => stage.playCue(cues[k].i, { rate: 0.75 }) }, 'Ouvir mais devagar'),
+          recBtn,
+          h('button', { class: 'btn good', onclick: () => { if (k < cues.length - 1) { select(k + 1); stage.playCue(cues[k].i); } } }, 'Próxima', ic('next'))),
+        heard, myAudio, h('div', { style: 'margin-top:10px' }, h('span', { class: 'tip' }, 'Treino físico, não perfeição'))),
+      list),
+    finishBar(l, 4, () => { const v = Object.values(results); return v.length ? v.reduce((a, r) => a + r.pct, 0) / cues.length : null; }));
+}
+
+/* ---------- 5: ditado ---------- */
+function act5(l) {
+  const stage = new Stage(l, { controls: false }); stage.setMode('none'); cleanup.push(() => stage.stop());
+  const cues = stage.cues.filter(c => c.t0 != null && c.en.split(/\s+/).some(w => keyOf(w).length >= 4 && !/\d/.test(w)));
+  let k = 0; const solved = {}; let inputs = [];
+  const box = h('div', { class: 'dict' }); const counter = h('div', { class: 'counter', style: 'margin-bottom:6px' }); const fb = h('div', { class: 'small', style: 'min-height:1.5em;margin-top:10px' }); const pt = h('div', { class: 'small muted', style: 'margin-top:8px' });
+  function hiddenIdx(words) { const cand = words.map((w, i) => ({ i, k: keyOf(w) })).filter(x => x.k.length >= 4 && !/\d/.test(words[x.i])).sort((a, b) => b.k.length - a.k.length || a.i - b.i); return new Set(cand.slice(0, words.length > 7 ? 2 : 1).map(x => x.i)); }
+  function draw() {
+    const c = cues[k]; const words = c.en.split(/\s+/); const hid = hiddenIdx(words); box.innerHTML = ''; inputs = []; fb.textContent = ''; pt.textContent = '';
+    counter.textContent = `Frase ${k + 1} de ${cues.length}`;
+    words.forEach((w, i) => {
+      if (hid.has(i)) {
+        const pre = w.match(/^[^A-Za-z0-9]*/)[0], post = w.match(/[^A-Za-z0-9]*$/)[0]; const core = w.slice(pre.length, w.length - post.length); const kk = keyOf(core);
+        const inp = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Palavra escondida', maxlength: core.length + 2, placeholder: '•'.repeat(core.length), style: `width:${core.length + 2}ch` });
+        inp.dataset.k = kk; inp.dataset.w = core; inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+        inputs.push(inp); box.append(pre, inp, post, ' ');
+      } else box.append(w + ' ');
+    });
+    if (solved[c.i]) { inputs.forEach(x => { x.value = x.dataset.w; x.classList.add('ok'); }); pt.textContent = c.pt || ''; }
+  }
+  function check() {
+    let all = true; inputs.forEach(x => { const ok = keyOf(x.value) === x.dataset.k; x.classList.toggle('ok', ok); x.classList.toggle('no', !ok); if (!ok) all = false; });
+    if (all) { solved[cues[k].i] = true; fb.textContent = 'Perfeito! Ouça mais uma vez e repita em voz alta.'; pt.textContent = cues[k].pt || ''; }
+    else fb.textContent = 'Quase. Ouça de novo ou peça uma letra de dica.';
+  }
+  function hint() { const x = inputs.find(i => keyOf(i.value) !== i.dataset.k); if (!x) return; const w = x.dataset.w; let n = 0; const v = x.value; while (n < v.length && n < w.length && v[n].toLowerCase() === w[n].toLowerCase()) n++; x.value = w.slice(0, n + 1); x.focus(); }
+  if (!cues.length) return panel(5, 'Não há falas marcadas suficientes para o ditado. Marque os tempos da aula.', finishBar(l, 5));
+  draw();
+  return panel(5, 'Ouça a frase e digite as palavras que faltam. Os pontinhos mostram quantas letras a palavra tem. Repita quantas vezes precisar.',
+    h('div', { class: 'grid2' },
+      h('div', null, stage.el, h('div', { class: 'under' },
+        h('button', { class: 'btn', onclick: () => stage.playCue(cues[k].i) }, ic('ear'), 'Ouvir'),
+        h('button', { class: 'btn', onclick: () => stage.playCue(cues[k].i, { rate: 0.75 }) }, 'Mais devagar'))),
+      h('div', null, counter, box, pt, fb, h('div', { class: 'row', style: 'margin-top:12px' },
+        h('button', { class: 'btn sm', onclick: () => { stage.stop(); k = (k - 1 + cues.length) % cues.length; draw(); } }, 'Anterior'),
+        h('button', { class: 'btn sm', onclick: hint }, 'Dica: uma letra'),
+        h('button', { class: 'btn primary', onclick: check }, 'Conferir'),
+        h('button', { class: 'btn good', onclick: () => { stage.stop(); k = (k + 1) % cues.length; draw(); stage.playCue(cues[k].i); } }, 'Próxima', ic('next'))),
+        h('div', { style: 'margin-top:12px' }, h('span', { class: 'tip' }, 'Repita quantas vezes precisar')))),
+    finishBar(l, 5, () => Object.keys(solved).length / cues.length * 100));
+}
+
+/* ---------- roleplay (atividades 6 e 8) ---------- */
+function roleplay({ l, lines, stage, intro, defaultRole, playLine }) {
+  const speakers = speakersOf(lines);
+  let role = defaultRole && speakers.includes(defaultRole) ? defaultRole : (speakers.includes('Anna') ? 'Anna' : speakers[0]);
+  let running = false, ctl = null; const results = {};
+  const list = h('div', { class: 'lines' });
+  const status = h('div', { class: 'heard' }, h('span', { class: 'lbl' }, 'Como funciona'), intro);
+  const roleSel = h('select', { id: 'role-' + uid(), style: 'min-height:40px;border-radius:10px;border:1px solid var(--line);padding:6px 10px;background:var(--bg)', onchange: e => { role = e.target.value; draw(-1); } }, speakers.map(s => h('option', { value: s, selected: s === role }, s)));
+  const startBtn = h('button', { class: 'btn primary' }, ic('play'), 'Começar');
+  function draw(curI) {
+    list.innerHTML = '';
+    lines.forEach((c, i) => list.append(h('div', { class: 'line' + (i === curI ? ' cur' : '') + (results[i] ? ' done' : ''), 'data-i': i },
+      results[i] ? h('span', { class: 'sc' }, Math.round(results[i].pct) + '%') : null, h('div', { class: 'sp' }, (c.speaker === role ? 'Você · ' : '') + (c.speaker || '')), h('div', null, c.en), c.pt ? h('div', { class: 'pt' }, c.pt) : null)));
+    const el = list.querySelector(`[data-i="${curI}"]`); if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+  async function run() {
+    if (running) { running = false; stage && stage.stop(); Speech.stop(); if (ctl) ctl.stop(); return; }
+    running = true; startBtn.innerHTML = ICON.stop + ' Parar'; roleSel.disabled = true;
+    for (let i = 0; i < lines.length && running; i++) {
+      const c = lines[i]; draw(i);
+      if (c.speaker === role) {
+        status.innerHTML = ''; const live = h('span', { class: 'muted' }, '…');
+        status.append(h('span', { class: 'lbl' }, 'Sua vez: fale agora'), h('div', { class: 'focus-line', style: 'margin:6px 0' }, c.en), live, h('div', { style: 'margin-top:8px' }, h('button', { class: 'btn sm', onclick: () => ctl && ctl.stop() }, 'Terminei de falar')));
+        const words = c.en.split(/\s+/).length;
+        const ms = c.t0 != null && stage ? (c.t1 - c.t0) * 1000 + 2000 : Math.max(3500, words * 800 + 2500);
+        try { ctl = await capture({ maxMs: ms, onInterim: t => live.textContent = t }); } catch (e) { running = false; toast('Não consegui usar o microfone.'); break; }
+        let rp = null; if (stage && c.t0 != null) rp = stage.playCue(c.i, { muted: true, force: 'en' });
+        const { transcript } = await ctl.done; ctl = null; if (rp) stage.stop();
+        if (!running) break;
+        if (SR) { const res = scoreSpeech(c.en, transcript); results[i] = res; Progress.addSpoken(l.id, res); }
+        await sleep(250);
+      } else {
+        status.innerHTML = ''; status.append(h('span', { class: 'lbl' }, c.speaker || 'Cena'), h('div', null, c.en));
+        const ok = await playLine(c, i); if (!ok && !running) break; await sleep(200);
+      }
+    }
+    const was = running; running = false; roleSel.disabled = false; startBtn.innerHTML = ICON.play + ' Começar de novo'; draw(-1);
+    if (was) { const v = Object.values(results); const avg = v.length ? Math.round(v.reduce((a, r) => a + r.pct, 0) / v.length) : 0;
+      status.innerHTML = ''; status.append(h('span', { class: 'lbl' }, 'Cena concluída'), SR ? h('div', null, h('span', { class: 'pct' }, avg + '%'), ' de acerto nas suas falas. Toque numa fala sua para ver o detalhe.') : 'Cena concluída.'); }
+  }
+  startBtn.onclick = run;
+  list.addEventListener('click', e => { const el = e.target.closest('.line'); if (!el || running) return; const i = +el.dataset.i; if (results[i]) { status.innerHTML = ''; status.append(h('span', { class: 'lbl' }, `Sua fala: ${results[i].hit} de ${results[i].total} palavras`), renderScored(results[i]), h('div', { class: 'small muted' }, 'Reconhecido: “' + results[i].said + '”')); } else playLine(lines[i], i); });
+  cleanup.push(() => { running = false; stage && stage.stop(); Speech.stop(); if (ctl) ctl.stop(); });
+  draw(-1);
+  return { list, status, roleSel, startBtn, results };
+}
+
+/* ---------- 6: contracenar ---------- */
+function act6(l) {
+  const stage = new Stage(l, { controls: false }); stage.setMode('en');
+  const lines = stage.cues.filter(c => c.t0 != null);
+  const rp = roleplay({ l, lines, stage, intro: 'Escolha o personagem que você vai interpretar. A cena roda e, na vez dele, o som do ator some e você fala a frase. A legenda aparece para ajudar.', playLine: (c) => stage.playCue(c.i) });
+  return panel(6, 'Você entra na cena no lugar de um dos atores. Fale no ritmo da cena, como numa dublagem.',
+    h('div', { class: 'grid2' }, h('div', null, stage.el, h('div', { class: 'under' }, h('label', { class: 'small', for: rp.roleSel.id }, 'Eu sou:'), rp.roleSel, rp.startBtn), rp.status), rp.list),
+    finishBar(l, 6, () => { const v = Object.values(rp.results); return v.length ? v.reduce((a, r) => a + r.pct, 0) / v.length : null; }));
+}
+
+/* ---------- 7: música e karaokê ---------- */
+function act7(l) {
+  const songKey = l.songLines ? null : LS.get('song_' + l.id, l.song);
+  const song = songOf(l);
+  let cur = -1, token = 0, ctl = null, lastRes = null;
+  const media = l.songBlob ? h(/^video/.test(l.songBlob.type) ? 'video' : 'audio', { src: blobUrl(l.songBlob, l.id + ':s'), controls: true, playsinline: true }) : null;
+  const timed = media && song.lines.every(x => x.t != null);
+  const lyr = h('div', { class: 'lyrics' }); song.lines.forEach(x => lyr.append(h('div', { class: 'ly' }, h('div', null, x.en), x.pt ? h('div', { class: 'pt' }, x.pt) : null)));
+  const screen = h('div', { class: 'screen' }); const kara = h('div', { class: 'kara' }); const now = h('div', { class: 'now' }); const nxt = h('div', { class: 'next' });
+  kara.append(h('div', { class: 'ttl' }, song.title), now, nxt); const recBadge = h('span', { class: 'recdot', hidden: true }, '● REC'); screen.append(kara, recBadge);
+  now.textContent = song.lines[0].en; nxt.textContent = song.lines[1] ? song.lines[1].en : '';
+  const result = h('div', { class: 'heard' }, h('span', { class: 'lbl' }, 'Resultado'), h('span', { class: 'muted' }, 'Cante no karaokê para ver quantas palavras você acertou.'));
+  const myAudio = h('div');
+  function setLine(i) { if (i === cur) return; cur = i; [...lyr.children].forEach((el, k) => el.classList.toggle('cur', k === i)); if (i >= 0 && lyr.children[i]) lyr.children[i].scrollIntoView({ block: 'nearest' }); now.textContent = i >= 0 ? song.lines[i].en : song.lines[0].en; nxt.textContent = song.lines[i + 1] ? song.lines[i + 1].en : ''; }
+  if (timed) media.addEventListener('timeupdate', () => { const t = media.currentTime; let i = -1; song.lines.forEach((x, k) => { if (t >= x.t) i = k; }); setLine(i); });
+  async function paced(tk, slow) { for (let i = 0; i < song.lines.length; i++) { if (tk !== token) return; setLine(i); await sleep((slow ? 1800 : 1200) + song.lines[i].en.split(/\s+/).length * (slow ? 650 : 520)); } }
+  async function start(kind) {
+    stopAll(); const tk = ++token;
+    if (kind === 'karaoke') {
+      await micGuard(async () => { recBadge.hidden = false; ctl = await capture({ maxMs: media && media.duration ? media.duration * 1000 + 2000 : 120000 });
+        ctl.done.then(({ blob, transcript }) => { recBadge.hidden = true; const res = scoreSpeech(song.lines.map(x => x.en).join(' '), transcript); lastRes = res;
+          result.innerHTML = ''; result.append(h('span', { class: 'lbl' }, SR ? `Você cantou ${res.hit} de ${res.total} palavras` : 'Gravação feita'), SR ? renderScored(res) : null); if (SR) Progress.addSpoken(l.id, res);
+          myAudio.innerHTML = ''; if (blob) myAudio.append(h('div', { class: 'small muted', style: 'margin-top:8px' }, 'Sua versão:'), h('audio', { controls: true, src: URL.createObjectURL(blob) })); }); });
+      if (!ctl) return;
+    }
+    if (media) { media.currentTime = 0; try { await media.play(); } catch (e) {} if (!timed) await paced(tk, false); else await new Promise(r => { const f = () => { media.removeEventListener('ended', f); media.removeEventListener('pause', f); r(); }; media.addEventListener('ended', f); media.addEventListener('pause', f); }); }
+    else await paced(tk, kind === 'read');
+    if (tk === token && ctl) { ctl.stop(); ctl = null; }
+  }
+  function stopAll() { token++; if (media) media.pause(); if (ctl) { ctl.stop(); ctl = null; } recBadge.hidden = true; }
+  cleanup.push(stopAll);
+  const pick = l.songLines ? null : h('select', { id: 'songpick', style: 'min-height:40px;border-radius:10px;border:1px solid var(--line);padding:6px 10px;background:var(--bg);max-width:100%', onchange: e => { LS.set('song_' + l.id, e.target.value); render(); } },
+    Object.entries(SONGS).map(([k2, s]) => h('option', { value: k2, selected: k2 === songKey }, s.title)));
+  return panel(7, media ? 'Ouça com a letra e a tradução. Depois cante no karaokê: a letra aparece na tela e a sua voz é gravada.'
+    : 'Leia a letra com a tradução e procure a música para ouvir a melodia. Depois cante no karaokê: as linhas passam no ritmo e a sua voz é corrigida. Se tiver o áudio da música, crie uma aula sua e anexe o arquivo.',
+    h('div', { class: 'grid2' },
+      h('div', null, screen, media, h('div', { class: 'under' },
+        h('button', { class: 'btn primary', onclick: () => start('read') }, ic('play'), media ? 'Ouvir com a letra' : 'Ler no ritmo'),
+        h('button', { class: 'btn rec', onclick: () => start('karaoke') }, ic('mic'), 'Karaokê: cantar'),
+        h('button', { class: 'btn', onclick: stopAll }, ic('stop'), 'Parar')), result, myAudio),
+      h('div', null, pick ? h('div', { class: 'fgroup', style: 'margin-bottom:10px' }, h('label', { for: 'songpick', class: 'small' }, 'Música'), pick) : null,
+        h('div', { class: 'small muted', style: 'margin-bottom:6px' }, song.title + (song.note ? ' · ' + song.note : '')), lyr)),
+    finishBar(l, 7, () => lastRes ? lastRes.pct : null));
+}
+
+/* ---------- 8: diálogos da vida real ---------- */
+function act8(l) {
+  const d = dialogueOf(l);
+  if (!d || !d.lines.length) return panel(8, 'Esta aula não tem diálogo de viagem.', finishBar(l, 8));
+  const [ctxEn, ctxPt] = splitPt(d.context || '');
+  const rp = roleplay({ l, lines: d.lines, stage: null, defaultRole: d.you, intro: 'Você faz o seu papel em voz alta. A outra pessoa fala com voz sintetizada do seu aparelho.', playLine: async (c) => { await Speech.say(c.en, c.speaker); return true; } });
+  const read = h('div'); let tab = 'both';
+  function drawRead() { read.innerHTML = ''; d.lines.forEach(c => read.append(h('div', { style: 'padding:8px 0;border-bottom:1px solid var(--line)' }, tab !== 'pt' ? h('div', null, h('b', null, c.speaker + ': '), c.en) : null, tab !== 'en' && c.pt ? h('div', { class: tab === 'both' ? 'small muted' : '' }, tab === 'pt' ? h('b', null, c.speaker + ': ') : null, c.pt) : null))); }
+  const seg = h('div', { class: 'seg' }); [['en', 'Inglês'], ['pt', 'Português'], ['both', 'Os dois']].forEach(([k2, t]) => seg.append(h('button', { class: k2 === tab ? 'on' : '', onclick: e => { tab = k2; seg.querySelectorAll('button').forEach(b => b.classList.remove('on')); e.currentTarget.classList.add('on'); drawRead(); } }, t)));
+  drawRead();
+  return panel(8, 'Uma situação que você vai viver numa viagem. Leia o diálogo nos dois idiomas e depois faça o seu papel em voz alta.',
+    h('div', { class: 'grid2' },
+      h('div', null, h('h3', { style: 'font-size:20px' }, d.title + ' · ' + d.titlePt), h('p', { class: 'small' }, h('b', null, 'Context: '), ctxEn, ctxPt ? h('span', { class: 'muted' }, h('br'), 'Contexto: ' + ctxPt) : null), seg, read),
+      h('div', null, h('div', { class: 'under', style: 'margin-top:0' }, h('label', { class: 'small', for: rp.roleSel.id }, 'Eu sou:'), rp.roleSel, rp.startBtn), rp.status, h('details', { style: 'margin-top:10px' }, h('summary', { class: 'small' }, 'Ver falas e notas'), rp.list))),
+    finishBar(l, 8, () => { const v = Object.values(rp.results); return v.length ? v.reduce((a, r) => a + r.pct, 0) / v.length : null; }));
+}
+
+/* ---------- 9: fim ---------- */
+function wordsAZ(map, onWord) {
+  const groups = {}; Object.keys(map).sort().forEach(w => { const L = w[0].toUpperCase(); (groups[L] = groups[L] || []).push(w); });
+  return h('div', { class: 'az' }, Object.entries(groups).map(([L, ws]) => h('div', null, h('div', { class: 'letter' }, L), ws.map(w => h('button', { onclick: () => onWord(w) }, w, h('span', { class: 'c' }, '×' + map[w]))))));
+}
+function act9(l) {
+  const P = Progress.L(l.id); const tc = timedCues(l).filter(c => c.t0 != null);
+  const stage = tc.length ? new Stage(l, { controls: false }) : null; if (stage) { stage.setMode('en'); cleanup.push(() => stage.stop()); }
+  const hear = (w) => { const c = tc.find(c => tokens(c.en).includes(w)); if (c && stage) { stage.playCue(c.i); stage.el.scrollIntoView({ block: 'nearest' }); } else Speech.say(w, null, 0.8); };
+  const missed = Object.entries(P.missed).filter(([w]) => (P.missed[w] || 0) > (P.words[w] || 0)).sort((a, b) => b[1] - a[1]).slice(0, 30);
+  const report = () => [`Relatório – ${l.title} (${l.sceneTitle})`, `Palavras faladas corretamente nesta aula: ${P.total || 0}`, ...STEPS.slice(0, 8).map(s => `${s.n}. ${s.name}: ${P.done[s.n] ? 'feito' : 'pendente'}${P.scores[s.n] != null ? ' (' + P.scores[s.n] + '%)' : ''}`), missed.length ? 'Palavras para revisar: ' + missed.map(x => x[0]).join(', ') : ''].join('\n');
+  return panel(9, 'Veja o que você já domina e o que vale revisar. Toque numa palavra para ouvir o trecho do vídeo em que ela aparece.',
+    h('div', { class: 'vick' }, h('div', { class: 'n' }, (P.total || 0).toLocaleString('pt-BR')), h('div', null, h('div', { style: 'font-weight:700;font-size:18px' }, 'palavras faladas corretamente nesta aula'), h('div', { class: 'small', style: 'opacity:.75' }, `No curso todo: ${Progress.d.total.toLocaleString('pt-BR')} palavras`))),
+    stage ? h('div', { style: 'max-width:520px;margin-bottom:18px' }, stage.el) : null,
+    h('div', { class: 'scores' }, STEPS.slice(0, 8).map(s => h('div', null, h('div', { class: 'n' }, P.done[s.n] ? (P.scores[s.n] != null ? P.scores[s.n] + '%' : '✓') : '—'), h('div', { class: 'l' }, s.short)))),
+    missed.length ? [h('h3', { style: 'font-size:19px;margin-bottom:8px' }, 'Para revisar'), h('div', { class: 'tags', style: 'margin-bottom:22px' }, missed.map(([w]) => h('button', { class: 'tag', onclick: () => hear(w) }, w)))] : null,
+    h('h3', { style: 'font-size:19px;margin-bottom:10px' }, 'Palavras que você já falou certo'),
+    Object.keys(P.words).length ? wordsAZ(P.words, hear) : h('p', { class: 'muted' }, 'Ainda nenhuma. Faça as atividades de gravação para começar a lista.'),
+    h('div', { class: 'actions' },
+      h('div', { class: 'row' },
+        h('button', { class: 'btn', onclick: async () => { try { await navigator.clipboard.writeText(report()); toast('Relatório copiado'); } catch (e) { toast('Não consegui copiar'); } } }, 'Copiar relatório'),
+        h('button', { class: 'btn ghost', onclick: (e) => { if (e.currentTarget.dataset.c) { Progress.reset(l.id); toast('Progresso da aula apagado'); render(); } else { e.currentTarget.dataset.c = '1'; e.currentTarget.textContent = 'Toque de novo para confirmar'; } } }, 'Refazer a aula')),
+      h('button', { class: 'btn primary', onclick: () => { Progress.mark(l.id, 9); const n = lessons[lessons.indexOf(l) + 1]; go(n ? `aula-${n.id}-1` : 'home'); } }, lessons[lessons.indexOf(l) + 1] ? 'Próxima aula' : 'Voltar às aulas', ic('next'))));
+}
+
+/* ================= progresso geral ================= */
+function viewProgress() {
+  const missed = Object.entries(Progress.d.missed).filter(([w]) => (Progress.d.missed[w] || 0) > (Progress.d.words[w] || 0)).sort((a, b) => b[1] - a[1]).slice(0, 40);
+  return h('div', null, h('div', { class: 'eyebrow' }, 'Meu progresso'), h('h1', { style: 'font-size:32px;margin:6px 0 18px' }, 'Tudo o que você já falou'),
+    h('div', { class: 'vick' }, h('div', { class: 'n' }, Progress.d.total.toLocaleString('pt-BR')), h('div', null, h('div', { style: 'font-weight:700;font-size:18px' }, 'palavras faladas corretamente'), h('div', { class: 'small', style: 'opacity:.75' }, `${Object.keys(Progress.d.words).length} palavras diferentes · ${Progress.d.days.length} dias de estudo · ${Progress.streak()} dias seguidos`))),
+    h('section', { class: 'panel' },
+      missed.length ? [h('h3', { style: 'font-size:19px;margin-bottom:8px' }, 'Palavras que mais travaram'), h('div', { class: 'tags', style: 'margin-bottom:22px' }, missed.map(([w]) => h('span', { class: 'tag' }, w)))] : null,
+      h('h3', { style: 'font-size:19px;margin-bottom:10px' }, 'Meu vocabulário falado, de A a Z'),
+      Object.keys(Progress.d.words).length ? wordsAZ(Progress.d.words, () => {}) : h('p', { class: 'muted' }, 'A lista começa quando você gravar a primeira frase.')));
+}
+
+/* ================= ajustes ================= */
+function viewSettings() {
+  const list = Speech.ordered();
+  const sel = h('select', { id: 'voice', onchange: e => { Speech.voiceName = e.target.value; LS.set('voice', e.target.value); } }, list.length ? list.map(v => h('option', { value: v.name, selected: v.name === Speech.voiceName }, `${v.name} (${v.lang})`)) : h('option', null, 'Nenhuma voz em inglês encontrada'));
+  const out = h('span', { class: 'small' });
+  const testMic = h('button', { class: 'btn rec', onclick: () => micGuard(async () => { testMic.disabled = true; out.textContent = 'Diga: “Hello, my name is…”'; const c = await capture({ maxMs: 5000, onInterim: t => out.textContent = t }); const r = await c.done; testMic.disabled = false; out.textContent = r.transcript ? 'Entendi: “' + r.transcript + '”' : (SR ? 'Não ouvi nada. Confira o microfone.' : 'Gravação funcionou (sem correção neste navegador).'); }) }, ic('mic'), 'Testar microfone');
+  const mk = h('div', { class: 'seg' }); [[true, 'Ligada'], [false, 'Desligada']].forEach(([v, t]) => mk.append(h('button', { class: maskOn() === v ? 'on' : '', onclick: () => { LS.set('maskon', v); render(); } }, t)));
+  const hd = h('div', { class: 'seg' }); [[false, 'Normal (360p, gasta menos dados)'], [true, 'Alta (720p)']].forEach(([v, t]) => hd.append(h('button', { class: LS.get('hd', false) === v ? 'on' : '', onclick: () => { LS.set('hd', v); render(); } }, t)));
+  return h('div', null, h('div', { class: 'eyebrow' }, 'Ajustes'), h('h1', { style: 'font-size:32px;margin:6px 0 18px' }, 'Vídeo, voz e microfone'),
+    h('section', { class: 'panel form' },
+      h('div', { class: 'fgroup' }, h('label', null, 'Qualidade do vídeo'), hd),
+      h('div', { class: 'fgroup' }, h('label', null, 'Tarja sobre a legenda dos vídeos'), mk,
+        h('div', { class: 'help' }, 'Os vídeos da VOA já vêm com legenda em inglês dentro da imagem. A tarja cobre essa faixa para você treinar o ouvido. Se ainda aparecer um pedaço da legenda, toque em "Tarja", embaixo do vídeo, e aumente a altura. O ajuste fica salvo para cada aula.')),
+      h('div', { class: 'fgroup' }, h('label', null, 'Microfone'), h('div', { class: 'row' }, testMic, out), h('div', { class: 'help' }, IS_MOBILE ? 'No celular, a plataforma corrige a sua pronúncia, mas não guarda o áudio da sua voz para você ouvir depois.' : 'No computador, a plataforma corrige a pronúncia e também guarda a sua voz para você ouvir.')),
+      h('div', { class: 'fgroup' }, h('label', { for: 'voice' }, 'Voz do parceiro nos diálogos de viagem'), sel, h('div', { class: 'help' }, 'Só a atividade 8 usa voz sintetizada. As cenas usam os atores do vídeo.'),
+        h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => Speech.say('Good morning. May I see your passport, please?') }, ic('ear'), 'Ouvir exemplo'))),
+      h('div', { class: 'fgroup' }, h('label', null, 'Seus dados'), h('div', { class: 'help' }, 'Progresso, tempos das falas e aulas criadas ficam guardados só neste aparelho. Para levar para outro aparelho, baixe o backup e restaure lá.'),
+        h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: exportBackup }, 'Baixar backup'), h('label', { class: 'btn sm' }, 'Restaurar backup', h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: importBackup }))))));
+}
+function exportBackup() {
+  const ls = {}; LS.keys().forEach(k => ls[k] = LS.get(k));
+  const data = { v: 2, ls, lessons: lessons.filter(l => !l.builtin).map(l => { const c = Object.assign({}, l); delete c.videoBlob; delete c.songBlob; return c; }) };
+  const a = h('a', { href: URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' })), download: 'cena-a-cena-backup-' + today() + '.json' }); document.body.append(a); a.click(); a.remove();
+}
+async function importBackup(e) {
+  const f = e.target.files[0]; if (!f) return;
+  try { const d = JSON.parse(await f.text()); if (!d.ls) throw 0; Object.entries(d.ls).forEach(([k, v]) => LS.set(k, v)); Progress.d = LS.get('progress2', Progress.d);
+    for (const l of d.lessons || []) await DB.put(l); lessons = await loadLessons(); toast('Backup restaurado'); render(); }
+  catch (err) { toast('Esse arquivo não é um backup válido'); }
+}
+
+/* ================= editor (aulas criadas por você) ================= */
+function viewEditor(l) {
+  if (l && l.builtin) { go('home'); return h('div'); }
+  const isNew = !l; const base = l || { id: uid(), title: '', sceneTitle: '', focus: '', cues: [], question: { en: '', pt: '', options: [], correct: 0 }, songTitle: '', songLines: [], dialogue: 'plane' };
+  let videoBlob = base.videoBlob || null, songBlob = base.songBlob || null;
+  const f = (id, label, input, help) => h('div', { class: 'fgroup' }, h('label', { for: id }, label), input, help ? h('div', { class: 'help', html: help }) : null);
+  const inp = (id, v, ph, type) => h('input', { type: type || 'text', id, value: v || '', placeholder: ph || '' });
+  const ta = (id, v, ph, rows) => h('textarea', { id, placeholder: ph || '', rows: rows || 8 }, v || '');
+  const title = inp('e-title', base.title, 'Ex.: Na cafeteria'); const sceneTitle = inp('e-scene', base.sceneTitle, 'Ex.: At the Coffee Shop'); const focus = inp('e-focus', base.focus, 'Ex.: pedidos com "Can I…"');
+  const vurl = inp('e-vurl', base.video && base.video.sd, 'https://…/video.mp4', 'url');
+  const vInfo = h('span', { class: 'small muted' }); const showV = () => { vInfo.textContent = videoBlob ? `Arquivo anexado: ${videoBlob.name || 'vídeo'} (${(videoBlob.size / 1048576).toFixed(1)} MB)` : ''; };
+  const vFile = h('input', { type: 'file', id: 'e-video', accept: 'video/*', onchange: e => { videoBlob = e.target.files[0] || videoBlob; showV(); } });
+  const cues = ta('e-cues', cuesToText(base.cues), 'Emma: Can I have a large latte, please? | Pode me ver um latte grande, por favor?', 12);
+  const srtEn = h('input', { type: 'file', accept: '.srt,.vtt', hidden: true, onchange: async e => { const s = parseSrt(await e.target.files[0].text()); cues.value = cuesToText(s.map(x => ({ t0: x.t0, t1: x.t1, speaker: '', en: x.text, pt: '' }))); toast(s.length + ' falas importadas'); } });
+  const q = base.question || { options: [] };
+  const qEn = inp('e-qen', q.en, 'What is happening in the scene?'); const qPt = inp('e-qpt', q.pt, 'O que está acontecendo na cena?');
+  const qOpts = ta('e-qopts', (q.options || []).map(o => o.en + (o.pt ? ' | ' + o.pt : '')).join('\n'), 'Uma alternativa por linha: inglês | português', 4);
+  const qCorrect = h('select', { id: 'e-qc' }, [0, 1, 2, 3, 4].map(i => h('option', { value: i, selected: i === (q.correct || 0) }, 'Alternativa ' + (i + 1))));
+  const sTitle = inp('e-stitle', base.songTitle, 'Nome da música'); const sLines = ta('e-slines', lyricsToText(base.songLines || []), '[0:12.5] Verso em inglês | tradução', 6);
+  const sFile = h('input', { type: 'file', id: 'e-sfile', accept: 'audio/*,video/*', onchange: e => { songBlob = e.target.files[0] || songBlob; } });
+  const dSel = h('select', { id: 'e-dlg' }, Object.entries(DIALOGUES).map(([k, d]) => h('option', { value: k, selected: k === base.dialogue }, d.titlePt)));
+  async function save() {
+    const out = Object.assign({}, base, { title: title.value.trim() || 'Aula sem título', sceneTitle: sceneTitle.value.trim(), focus: focus.value.trim(), cues: parseCues(cues.value),
+      video: vurl.value.trim() ? { sd: vurl.value.trim() } : null, videoBlob,
+      question: { en: qEn.value.trim(), pt: qPt.value.trim(), options: qOpts.value.split('\n').map(x => x.trim()).filter(Boolean).map(x => { const [en, pt] = splitPt(x); return { en, pt }; }), correct: +qCorrect.value },
+      songTitle: sTitle.value.trim(), songLines: parseLyrics(sLines.value), songBlob, dialogue: dSel.value, order: base.order != null ? base.order : 1000 + Date.now() / 1e10 });
+    if (!out.cues.length) { toast('Escreva pelo menos uma fala'); cues.focus(); return; }
+    if (!out.video && !out.videoBlob) { toast('Anexe um vídeo ou cole o link de um .mp4'); return; }
+    if (!out.songLines.length) { delete out.songLines; out.song = 'row'; }
+    if (out.question.correct >= out.question.options.length) out.question.correct = 0;
+    await DB.put(out); lessons = await loadLessons(); toast('Aula salva'); go(`aula-${out.id}-1`);
+  }
+  const delBtn = isNew ? null : h('button', { class: 'btn ghost', type: 'button', onclick: async (e) => { if (!e.currentTarget.dataset.c) { e.currentTarget.dataset.c = '1'; e.currentTarget.textContent = 'Toque de novo para apagar'; return; } await DB.del(base.id); Progress.reset(base.id); lessons = await loadLessons(); toast('Aula apagada'); go('home'); } }, 'Apagar aula');
+  showV();
+  return h('div', null, h('div', { class: 'eyebrow' }, isNew ? 'Nova aula' : 'Editar aula'), h('h1', { style: 'font-size:32px;margin:6px 0 18px' }, isNew ? 'Monte a sua cena' : base.title),
+    h('form', { class: 'form', onsubmit: e => { e.preventDefault(); save(); } },
+      h('fieldset', null, h('legend', null, 'Aula'), h('div', { class: 'grid2' }, f('e-title', 'Nome da aula', title), f('e-scene', 'Nome da cena em inglês', sceneTitle)), f('e-focus', 'Foco da aula', focus)),
+      h('fieldset', null, h('legend', null, 'Vídeo e falas'),
+        f('e-vurl', 'Link do vídeo (.mp4)', vurl, 'Um endereço que termine em .mp4. Links do YouTube não funcionam aqui.'),
+        f('e-video', 'Ou um arquivo de vídeo do seu aparelho', vFile, 'O arquivo fica guardado só neste aparelho.'), vInfo,
+        f('e-cues', 'Falas', cues, 'Uma fala por linha: <code>Personagem: frase em inglês | tradução</code>. Depois de salvar, marque os tempos na própria aula.'),
+        h('div', { class: 'row' }, h('label', { class: 'btn sm' }, 'Importar legenda .srt', srtEn))),
+      h('fieldset', null, h('legend', null, 'Pergunta (atividade 1)'), h('div', { class: 'grid2' }, f('e-qen', 'Pergunta em inglês', qEn), f('e-qpt', 'Em português', qPt)), f('e-qopts', 'Alternativas', qOpts), f('e-qc', 'Qual é a certa?', qCorrect)),
+      h('fieldset', null, h('legend', null, 'Música (atividade 7, opcional)'), f('e-stitle', 'Nome', sTitle), f('e-sfile', 'Áudio ou clipe', sFile), f('e-slines', 'Letra', sLines, 'Uma linha por verso: <code>verso | tradução</code>. Com áudio, coloque o tempo: <code>[0:12.5] verso | tradução</code>. Sem letra, a aula usa uma música do curso.')),
+      h('fieldset', null, h('legend', null, 'Diálogo de viagem (atividade 8)'), f('e-dlg', 'Situação', dSel)),
+      h('div', { class: 'actions', style: 'border:0;padding-top:0' }, h('div', { class: 'row' }, h('a', { class: 'btn ghost', href: '#home' }, 'Cancelar'), delBtn), h('button', { class: 'btn primary', type: 'submit' }, 'Salvar aula'))));
+}
+
+/* ================= início ================= */
+async function loadLessons() { const mine = await DB.all(); return [...COURSE, ...mine.sort((a, b) => (a.order || 0) - (b.order || 0))]; }
+(async function boot() { Speech.init(); await DB.open(); lessons = await loadLessons(); render(); })();
+</script>
+</body>
+</html>
