@@ -789,19 +789,29 @@ function viewTiming(l) {
 /* ---------- 1: sem legenda ---------- */
 function act1(l) {
   const stage = new Stage(l); stage.setMode('none'); cleanup.push(() => stage.stop());
-  const q = l.question; let correct = null;
-  const opts = h('div'); const fb = h('div', { class: 'small', style: 'margin-top:8px;min-height:1.5em' });
-  if (q && q.options && q.options.length) q.options.forEach((o, i) => opts.append(h('label', { class: 'opt' }, h('input', { type: 'radio', name: 'q1', value: i }), h('span', { class: 't' }, h('div', null, o.en), o.pt ? h('details', null, h('summary', { class: 'small muted' }, 'tradução'), h('div', { class: 'pt' }, o.pt)) : null))));
+  const q = l.question; let correct = null; let tries = 0;
+  const opts = h('div'); const fb = h('div', { class: 'small', style: 'margin-top:10px;min-height:1.5em' });
+  const letters = 'ABCD';
+  if (q && q.options && q.options.length) q.options.forEach((o, i) => opts.append(h('label', { class: 'opt' }, h('input', { type: 'radio', name: 'q1', value: i }),
+    h('span', { class: 't' }, h('div', null, h('b', null, letters[i] + ') '), o.en), o.pt ? h('div', { class: 'pt opt-pt', hidden: true }, o.pt) : null))));
+  const showPt = h('button', { class: 'btn ghost sm', type: 'button', onclick: () => { const on = qpt.hidden; qpt.hidden = !on; opts.querySelectorAll('.opt-pt').forEach(x => x.hidden = !on); showPt.textContent = on ? 'Esconder tradução' : 'Ver tradução'; } }, 'Ver tradução');
+  const qpt = h('div', { class: 'qpt', hidden: true, style: 'margin:4px 0 12px' }, q ? q.pt : '');
   const send = h('button', { class: 'btn primary', onclick: () => {
     const sel = opts.querySelector('input:checked'); if (!sel) { toast('Escolha uma alternativa'); return; }
-    correct = +sel.value === q.correct;
-    opts.querySelectorAll('.opt').forEach((o, i) => { o.classList.toggle('right', i === q.correct); o.classList.toggle('wrong', i === +sel.value && !correct); });
-    fb.textContent = correct ? 'Isso! Você entendeu a cena sem legenda.' : 'Ainda não. Assista de novo prestando atenção nas palavras-chave. A resposta certa está em verde.';
-  } }, 'Enviar resposta');
-  return panel(1, 'Assista ao vídeo inteiro sem legenda, quantas vezes quiser. Tente pegar a ideia geral, não cada palavra. Depois responda à pergunta. A faixa escura embaixo do vídeo esconde a legenda que já vem gravada nele. Se ainda aparecer algum texto, toque em "Tarja" e aumente a altura.',
+    tries++; const ok = +sel.value === q.correct; if (correct == null) correct = ok;
+    opts.querySelectorAll('.opt').forEach((o, i) => { o.classList.remove('right', 'wrong'); if (i === +sel.value) o.classList.add(ok ? 'right' : 'wrong'); });
+    fb.innerHTML = '';
+    if (ok || tries >= 2) {
+      opts.querySelectorAll('.opt').forEach((o, i) => { if (i === q.correct) o.classList.add('right'); o.querySelector('input').disabled = true; });
+      send.disabled = true;
+      fb.append(h('b', null, ok ? (tries === 1 ? 'Acertou de primeira! ' : 'Agora sim! ') : 'A resposta certa está em verde. '), q.explain ? h('span', null, q.explain) : null);
+    } else fb.append(h('b', null, 'Ainda não. '), 'Assista de novo o trecho que fala disso e tente mais uma vez.');
+  } }, 'Responder');
+  const diff = q && q.difficulty ? h('span', { class: 'tagline ' + (q.difficulty === 'Difícil' ? 'warn' : ''), style: 'margin-bottom:8px' }, 'Nível da pergunta: ' + q.difficulty) : null;
+  return panel(1, 'Assista ao vídeo inteiro sem legenda, quantas vezes quiser. Depois responda à pergunta: ela exige entender a cena, não só pegar uma palavra. Você tem duas tentativas. A faixa escura embaixo do vídeo esconde a legenda que já vem gravada nele; se ainda aparecer algum texto, toque em "Tarja" e aumente a altura.',
     h('div', { class: 'grid2' },
-      h('div', null, stage.el, h('div', { class: 'under' }, stage.fullBtn(), h('span', { class: 'tip' }, 'Treino de escuta'))),
-      h('div', null, q ? [h('div', { class: 'q' }, q.en), q.pt ? h('details', { style: 'margin:-4px 0 12px' }, h('summary', { class: 'small muted' }, 'ver a pergunta em português'), h('div', { class: 'qpt', style: 'margin:4px 0 0' }, q.pt)) : null, opts, h('div', { class: 'row' }, send), fb] : h('p', { class: 'muted' }, 'Esta aula não tem pergunta.'))),
+      h('div', null, stage.el, h('div', { class: 'under' }, h('span', { class: 'tip' }, 'Treino de escuta'))),
+      h('div', null, q ? [diff, h('div', { class: 'q' }, q.en), h('div', { class: 'row', style: 'margin:-4px 0 6px' }, showPt), qpt, opts, h('div', { class: 'row' }, send), fb] : h('p', { class: 'muted' }, 'Esta aula não tem pergunta.'))),
     finishBar(l, 1, () => correct == null ? null : (correct ? 100 : 0)));
 }
 
