@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cena a Cena</title>
 <meta name="theme-color" content="#0E1222">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cena a Cena">
 <link rel="manifest" href="manifest.webmanifest">
@@ -130,7 +131,10 @@ main{padding-block:24px calc(64px + env(safe-area-inset-bottom,0px))}
 .screen{position:relative;background:#000;color:var(--screen-ink);border-radius:12px;aspect-ratio:16/9;max-width:100%;overflow:hidden;--fx:0px;--fy:0px;--fw:100%;--fh:100%;--mh:.22}
 .player .screen{border-radius:0}
 .screen video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
-/* tarja que cobre a legenda gravada dentro do vídeo da VOA */
+/* tarja opcional que cobre legendas gravadas na imagem */
+.ytwrap{position:absolute;inset:0}
+.ytwrap iframe,.ytwrap>div{width:100%;height:100%;border:0;display:block}
+.tapmsg{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;font-size:13px;padding:6px 12px;border-radius:999px;pointer-events:none;max-width:90%;text-align:center}
 .mask{position:absolute;left:var(--fx);width:var(--fw);top:calc(var(--fy) + var(--fh) * (1 - var(--mh)));height:calc(var(--fh) * var(--mh));background:rgba(6,8,16,.93);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);pointer-events:none}
 .subs{position:absolute;left:var(--fx);width:var(--fw);top:calc(var(--fy) + var(--fh) * (1 - var(--mh)));height:calc(var(--fh) * var(--mh));padding:0 4%;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:4px;pointer-events:none;align-items:center}
 .screen.nomask .subs{top:auto;height:auto;bottom:calc(var(--fh) * .16)}
@@ -420,11 +424,7 @@ const lyricsToText = (ls) => ls.map(x => (x.t != null ? `[${fmtTime(x.t)}] ` : '
 function parseSrt(text) { return text.replace(/\r/g, '').split(/\n\n+/).map(b => { const ls = b.trim().split('\n'); const ti = ls.findIndex(x => x.includes('-->')); if (ti < 0) return null; const [a, z] = ls[ti].split('-->').map(s => parseTime(s.trim().split(' ')[0])); return { t0: a, t1: z, text: ls.slice(ti + 1).join(' ').replace(/<[^>]+>/g, '').trim() }; }).filter(Boolean); }
 const speakersOf = (lines) => [...new Set(lines.map(c => c.speaker).filter(Boolean))];
 
-/* ================= conteúdo =================
-   Cenas: VOA Learning English, "Let's Learn English" (Voice of America). Texto e vídeos produzidos pela VOA
-   são de domínio público. Transcrições conferidas linha a linha com as páginas oficiais.
-   Traduções para o português: feitas para este curso. */
-const VOA = 'https://voa-video-ns.akamaized.net/pangeavideo/';
+/* ================= conteúdo ================= */
 const SONGS = {
   row: { title: 'Row, Row, Row Your Boat', note: 'canção tradicional, domínio público', lines: parseLyrics(`Row, row, row your boat | Reme, reme, reme o seu barco
 Gently down the stream | Suavemente rio abaixo
@@ -607,7 +607,7 @@ function viewHome() {
   const nextLesson = curWeek.lessons.find(l => !lessonDone(l));
   root.append(h('section', { class: 'hero' },
     h('div', null, h('div', { class: 'eyebrow' }, 'Meu curso de inglês · 8 meses'), h('h1', null, 'Do básico ao intermediário, uma cena por vez.'),
-      h('p', { class: 'muted' }, `${COURSE.length} aulas com vídeos reais da VOA. Do mês 1 ao 4, o nível básico, com 3 aulas por semana. Do mês 5 ao 8, o intermediário, com 2 aulas por semana e semanas de revisão.`)),
+      h('p', { class: 'muted' }, `${COURSE.length} aulas com vídeos oficiais da BBC Learning English no YouTube. Do mês 1 ao 4, o nível básico, com 3 aulas por semana. Do mês 5 ao 8, o intermediário, com 2 aulas por semana e semanas de revisão.`)),
     h('div', { class: 'stats' },
       h('div', { class: 'stat big' }, h('div', { class: 'n' }, Progress.d.total.toLocaleString('pt-BR')), h('div', { class: 'l' }, 'palavras faladas corretamente')),
       h('div', { class: 'stat' }, h('div', { class: 'n' }, Progress.streak()), h('div', { class: 'l' }, 'dias seguidos de estudo')),
@@ -637,20 +637,77 @@ function viewHome() {
   return root;
 }
 function credit(l) {
-  return h('p', { class: 'credit' }, 'Vídeos e transcrições das cenas: VOA Learning English, Voice of America (voanews.com), material de domínio público. Traduções e atividades: Cena a Cena.',
-    l && l.page ? [' ', h('a', { href: l.page, target: '_blank', rel: 'noopener' }, 'Ver esta aula no site da VOA')] : null);
+  return h('p', { class: 'credit' }, 'Vídeos: canal oficial da BBC Learning English no YouTube. Textos: transcrições oficiais publicadas pela BBC Learning English (bbc.co.uk/learningenglish). Traduções e atividades: Cena a Cena, para estudo pessoal.',
+    l && l.note ? [' ', h('span', null, 'A BBC avisa que esta transcrição não é palavra por palavra: pode haver pequenas diferenças em relação à fala.')] : null,
+    l && l.page ? [' ', h('a', { href: l.page, target: '_blank', rel: 'noopener' }, 'Ver o texto oficial no site da BBC')] : null,
+    l && l.yt ? [' · ', h('a', { href: 'https://www.youtube.com/watch?v=' + l.yt, target: '_blank', rel: 'noopener' }, 'Abrir no YouTube')] : null);
 }
 
 /* ================= palco de vídeo ================= */
+/* ---------- player do YouTube com a mesma interface de um <video> ---------- */
+let _ytApi = null;
+function loadYT() {
+  if (_ytApi) return _ytApi;
+  _ytApi = new Promise(res => {
+    if (window.YT && window.YT.Player) { res(); return; }
+    const prev = window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady = () => { if (prev) try { prev(); } catch (e) {} res(); };
+    const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.append(s);
+  });
+  return _ytApi;
+}
+class YTVideo extends EventTarget {
+  constructor(id) {
+    super(); this.el = h('div', { class: 'ytwrap' }); const slot = h('div'); this.el.append(slot);
+    this.p = null; this.state = -1; this._rate = 1; this._muted = false; this.videoWidth = 1280; this.videoHeight = 720; this._wantPlay = false;
+    loadYT().then(() => {
+      this.p = new YT.Player(slot, { videoId: id, width: '100%', height: '100%',
+        playerVars: Object.assign({ controls: 0, disablekb: 1, modestbranding: 1, rel: 0, playsinline: 1, cc_load_policy: 0, iv_load_policy: 3, fs: 0 }, /^https?:/.test(location.protocol) ? { origin: location.origin } : {}),
+        events: {
+          onReady: () => { this.ready = true; this.noCaptions(); if (this._muted) this.p.mute(); this.dispatchEvent(new Event('loadedmetadata')); if (this._seek != null) { this.p.seekTo(this._seek, true); this._seek = null; } if (this._wantPlay) this.p.playVideo(); },
+          onStateChange: (e) => { const old = this.state; this.state = e.data;
+            if (e.data === 1) { this.noCaptions(); if (this._seek != null) { const t = this._seek; this._seek = null; this.p.seekTo(t, true); } this.dispatchEvent(new Event('play')); if (this._needTap) { this._needTap = false; this.dispatchEvent(new Event('tapped')); } }
+            if (e.data === 2 && old !== 2) this.dispatchEvent(new Event('pause'));
+            if (e.data === 0) { this.dispatchEvent(new Event('pause')); this.dispatchEvent(new Event('ended')); } },
+          onError: () => this.dispatchEvent(new Event('error')),
+        } });
+    });
+    this._tick = setInterval(() => { if (this.p && (this.state === 1 || this.state === 3)) this.dispatchEvent(new Event('timeupdate')); }, 100);
+    cleanup.push(() => { clearInterval(this._tick); try { this.p && this.p.destroy(); } catch (e) {} });
+  }
+  noCaptions() { try { this.p.unloadModule('captions'); this.p.unloadModule('cc'); } catch (e) {} }
+  get currentTime() { return this.p && this.ready ? this.p.getCurrentTime() : (this._seek || 0); }
+  set currentTime(t) { if (this.p && this.ready) { this.p.seekTo(t, true); if (this.state === -1 || this.state === 5) this._seek = t; } else this._seek = t; this.dispatchEvent(new Event('timeupdate')); }
+  get duration() { return this.p && this.ready ? this.p.getDuration() : NaN; }
+  get paused() { return !(this.state === 1 || this.state === 3) && !this._wantPlay; }
+  get ended() { return this.state === 0; }
+  get muted() { return this._muted; }
+  set muted(b) { this._muted = !!b; if (this.p && this.ready) { b ? this.p.mute() : this.p.unMute(); } }
+  get playbackRate() { return this._rate; }
+  set playbackRate(r) { this._rate = r; if (this.p && this.ready) try { this.p.setPlaybackRate(r); } catch (e) {} }
+  play() {
+    this._wantPlay = true;
+    if (this.p && this.ready) { this.p.setPlaybackRate(this._rate); this.p.playVideo(); }
+    return new Promise((res) => {
+      const t0 = Date.now();
+      const chk = () => { if (this.state === 1) { this._wantPlay = false; res(); return; }
+        if (Date.now() - t0 > 2500) { this._wantPlay = false; if (this.state !== 3) { this._needTap = true; this.dispatchEvent(new Event('needtap')); } res(); return; }
+        setTimeout(chk, 120); };
+      chk();
+    });
+  }
+  pause() { this._wantPlay = false; if (this.p && this.ready) this.p.pauseVideo(); }
+}
+
 const maskOf = (l) => LS.get('mask_' + l.id, LS.get('mask', 0.22));
-const maskOn = () => LS.get('maskon', true);
+const maskOn = () => LS.get('maskon2', false);
 class Stage {
   constructor(l, { controls = true, onCue, cues, mask = true } = {}) {
     this.l = l; this.cues = cues || timedCues(l); this.mode = 'none'; this.token = 0;
     this.box = h('div', { class: 'screen' + (mask && maskOn() ? '' : ' nomask') }); this.subs = h('div', { class: 'subs', 'aria-live': 'polite' });
-    const v = this.video = h('video', { src: videoSrc(l), playsinline: true, 'webkit-playsinline': true, preload: 'metadata' });
-    v.addEventListener('error', () => { if (!this.box.querySelector('.err')) this.box.append(h('div', { class: 'err' }, 'O vídeo não carregou. Confira a sua internet e tente de novo. Se continuar, troque a qualidade em Ajustes.')); });
-    this.box.append(v);
+    const v = this.video = l.yt ? new YTVideo(l.yt) : h('video', { src: videoSrc(l), playsinline: true, 'webkit-playsinline': true, preload: 'metadata' });
+    if (l.yt) v.addEventListener('needtap', () => { if (!this.box.querySelector('.tapmsg')) { const m = h('div', { class: 'tapmsg' }, 'Toque no vídeo uma vez para liberar o som e a reprodução.'); this.box.append(m); v.addEventListener('tapped', () => m.remove(), { once: true }); setTimeout(() => m.remove(), 8000); } });
+    v.addEventListener('error', () => { if (!this.box.querySelector('.err')) this.box.append(h('div', { class: 'err' }, location.protocol === 'file:' ? 'O vídeo do YouTube só funciona com a plataforma aberta pelo endereço do site (github.io), não pelo arquivo no aparelho.' : 'O vídeo não carregou. Confira a sua internet e tente de novo.', l.yt ? [h('br'), h('a', { href: 'https://www.youtube.com/watch?v=' + l.yt, target: '_blank', rel: 'noopener', style: 'color:#F5C542' }, 'Abrir no YouTube')] : null)); });
+    this.box.append(v.el || v);
     if (mask && maskOn()) { this.box.append(h('div', { class: 'mask', 'aria-hidden': 'true' })); this.box.style.setProperty('--mh', maskOf(l)); }
     this.box.append(this.subs);
     this.el = h('div', { class: 'player' }, this.box);
@@ -808,7 +865,7 @@ function act1(l) {
     } else fb.append(h('b', null, 'Ainda não. '), 'Assista de novo o trecho que fala disso e tente mais uma vez.');
   } }, 'Responder');
   const diff = q && q.difficulty ? h('span', { class: 'tagline ' + (q.difficulty === 'Difícil' ? 'warn' : ''), style: 'margin-bottom:8px' }, 'Nível da pergunta: ' + q.difficulty) : null;
-  return panel(1, 'Assista ao vídeo inteiro sem legenda, quantas vezes quiser. Depois responda à pergunta: ela exige entender a cena, não só pegar uma palavra. Você tem duas tentativas. A faixa escura embaixo do vídeo esconde a legenda que já vem gravada nele; se ainda aparecer algum texto, toque em "Tarja" e aumente a altura.',
+  return panel(1, 'Assista ao vídeo inteiro sem legenda, quantas vezes quiser. Depois responda à pergunta: ela exige entender a cena, não só pegar uma palavra. Você tem duas tentativas. Se o vídeo mostrar algum texto em inglês na imagem, ligue a tarja em Ajustes.',
     h('div', { class: 'grid2' },
       h('div', null, stage.el, h('div', { class: 'under' }, h('span', { class: 'tip' }, 'Treino de escuta'))),
       h('div', null, q ? [diff, h('div', { class: 'q' }, q.en), h('div', { class: 'row', style: 'margin:-4px 0 6px' }, showPt), qpt, opts, h('div', { class: 'row' }, send), fb] : h('p', { class: 'muted' }, 'Esta aula não tem pergunta.'))),
@@ -1083,13 +1140,13 @@ function viewSettings() {
   const sel = h('select', { id: 'voice', onchange: e => { Speech.voiceName = e.target.value; LS.set('voice', e.target.value); } }, list.length ? list.map(v => h('option', { value: v.name, selected: v.name === Speech.voiceName }, `${v.name} (${v.lang})`)) : h('option', null, 'Nenhuma voz em inglês encontrada'));
   const out = h('span', { class: 'small' });
   const testMic = h('button', { class: 'btn rec', onclick: () => micGuard(async () => { testMic.disabled = true; out.textContent = 'Diga: “Hello, my name is…”'; const c = await capture({ maxMs: 5000, onInterim: t => out.textContent = t }); const r = await c.done; testMic.disabled = false; out.textContent = r.transcript ? 'Entendi: “' + r.transcript + '”' : (SR ? 'Não ouvi nada. Confira o microfone.' : 'Gravação funcionou (sem correção neste navegador).'); }) }, ic('mic'), 'Testar microfone');
-  const mk = h('div', { class: 'seg' }); [[true, 'Ligada'], [false, 'Desligada']].forEach(([v, t]) => mk.append(h('button', { class: maskOn() === v ? 'on' : '', onclick: () => { LS.set('maskon', v); render(); } }, t)));
+  const mk = h('div', { class: 'seg' }); [[true, 'Ligada'], [false, 'Desligada']].forEach(([v, t]) => mk.append(h('button', { class: maskOn() === v ? 'on' : '', onclick: () => { LS.set('maskon2', v); render(); } }, t)));
   const hd = h('div', { class: 'seg' }); [[false, 'Normal (360p, gasta menos dados)'], [true, 'Alta (720p)']].forEach(([v, t]) => hd.append(h('button', { class: LS.get('hd', false) === v ? 'on' : '', onclick: () => { LS.set('hd', v); render(); } }, t)));
   return h('div', null, h('div', { class: 'eyebrow' }, 'Ajustes'), h('h1', { style: 'font-size:32px;margin:6px 0 18px' }, 'Vídeo, voz e microfone'),
     h('section', { class: 'panel form' },
       h('div', { class: 'fgroup' }, h('label', null, 'Qualidade do vídeo'), hd),
       h('div', { class: 'fgroup' }, h('label', null, 'Tarja sobre a legenda dos vídeos'), mk,
-        h('div', { class: 'help' }, 'Os vídeos da VOA já vêm com legenda em inglês dentro da imagem. A tarja cobre essa faixa para você treinar o ouvido. Se ainda aparecer um pedaço da legenda, toque em "Tarja", embaixo do vídeo, e aumente a altura. O ajuste fica salvo para cada aula.')),
+        h('div', { class: 'help' }, 'Alguns vídeos têm textos ou legendas gravados na imagem. A tarja cobre a faixa de baixo para você treinar o ouvido. Se ainda aparecer um pedaço da legenda, toque em "Tarja", embaixo do vídeo, e aumente a altura. O ajuste fica salvo para cada aula.')),
       h('div', { class: 'fgroup' }, h('label', null, 'Microfone'), h('div', { class: 'row' }, testMic, out), h('div', { class: 'help' }, IS_MOBILE ? 'No celular, a plataforma corrige a sua pronúncia, mas não guarda o áudio da sua voz para você ouvir depois.' : 'No computador, a plataforma corrige a pronúncia e também guarda a sua voz para você ouvir.')),
       h('div', { class: 'fgroup' }, h('label', { for: 'voice' }, 'Voz do parceiro nos diálogos de viagem'), sel, h('div', { class: 'help' }, 'Só a atividade 8 usa voz sintetizada. As cenas usam os atores do vídeo.'),
         h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => Speech.say('Good morning. May I see your passport, please?') }, ic('ear'), 'Ouvir exemplo'))),
